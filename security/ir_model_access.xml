@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <record id="access_repair_accounts_user" model="ir.model.access">
+        <field name="name">x_repair_accounts user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_accounts')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <record id="access_repair_accounts_manager" model="ir.model.access">
+        <field name="name">x_repair_accounts manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_accounts')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
     <record id="access_repair_reason_custom_user" model="ir.model.access">
         <field name="name">x_repair_reason_custom user</field>
         <field name="model_id" model="ir.model" search="[('model','=','x_repair_reason_custom')]"/>

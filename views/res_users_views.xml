@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_res_users_form_custom" model="ir.ui.view">
+        <field name="name">res.users.form.custom</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tz']" position="after">
+                <field name="x_studio_virtual_location" string="Virtual Location"
+                       options="{&quot;no_create&quot;: true}"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_company_id&quot;,&quot;!=&quot;,1]]}"/>
+                <field name="x_studio_virtual_location_1" string="Virtual Location"
+                       options="{&quot;no_create&quot;: true}"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_company_id&quot;,&quot;!=&quot;,2]]}"/>
+                <field name="x_studio_source_location" string="Source Location"
+                       options="{&quot;no_create&quot;: true}"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_company_id&quot;,&quot;!=&quot;,1]]}"/>
+                <field name="x_studio_source_location_1" string="Source Location"
+                       options="{&quot;no_create&quot;: true}"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_company_id&quot;,&quot;!=&quot;,2]]}"/>
+                <field name="x_studio_company_id" string="Current Company" invisible="1"/>
+            </xpath>
+            <!-- Stat buttons: Stock Locations and Internal Locations for this user -->
+            <xpath expr="//button[@name='%(hr.hr_employee_action_from_user)d']" position="after">
+                <button class="oe_stat_button" icon="fa-map-marker"
+                        type="action" name="%(helpdesk_repair_custom.action_user_stock_locations)d">
+                    <field widget="statinfo" name="x_studio_stock_location_count" string="Stock Locations"/>
+                </button>
+                <button class="oe_stat_button" icon="fa-exchange"
+                        type="action" name="%(helpdesk_repair_custom.action_user_internal_locations)d">
+                    <field widget="statinfo" name="x_studio_internal_location_count" string="Internal Locations"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

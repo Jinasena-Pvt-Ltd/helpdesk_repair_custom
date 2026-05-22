@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Inherits helpdesk_stock's Return form (which adds ticket_id and picking_id).
+         Adds repair-type invisible flags, and makes picking_id readonly once a repair type is set. -->
+    <record id="stock_return_picking_form_repair_flags" model="ir.ui.view">
+        <field name="name">stock.return.picking.form.repair.flags</field>
+        <field name="model">stock.return.picking</field>
+        <field name="inherit_id" ref="helpdesk_stock.view_stock_return_picking_form_inherit_helpdesk_stock"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='ticket_id']" position="after">
+                <field name="x_studio_repair_rug" invisible="1"/>
+                <field name="x_studio_repair_normal_with_serial_no" invisible="1"/>
+                <field name="x_studio_repair_normal_without_serial_no" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='picking_id']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|','|',('x_studio_repair_rug', '!=', False),('x_studio_repair_normal_with_serial_no', '!=', False),('x_studio_repair_normal_without_serial_no', '!=', False)],'required': [('ticket_id', '!=', False)]}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherits the base Return Lines form. Adds suggested return locations (company-conditional)
+         before location_id, and the RUG Return button in the footer. -->
+    <record id="stock_return_picking_form_rug_location" model="ir.ui.view">
+        <field name="name">stock.return.picking.form.rug.location</field>
+        <field name="model">stock.return.picking</field>
+        <field name="inherit_id" ref="stock.view_stock_return_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="before">
+                <field name="x_studio_suggested_location_id" string="Suggested Return Location"
+                       options="{&quot;no_create&quot;: true}"
+                       attrs="{&quot;invisible&quot;: [[&quot;company_id&quot;,&quot;!=&quot;,1]]}"/>
+                <field name="x_studio_suggested_location_id_1" string="Suggested Return Location"
+                       options="{&quot;no_create&quot;: true}"
+                       attrs="{&quot;invisible&quot;: [[&quot;company_id&quot;,&quot;!=&quot;,2]]}"/>
+            </xpath>
+            <xpath expr="//footer/button[@name='create_returns']" position="after">
+                <button type="action" name="%(helpdesk_repair_custom.action_rug_return_from_helpdesk)d"
+                        string="Return" class="btn-primary"
+                        attrs="{&quot;invisible&quot;: [&quot;|&quot;,[&quot;ticket_id&quot;,&quot;=&quot;,False],[&quot;x_studio_repair_rug&quot;,&quot;!=&quot;,True]]}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

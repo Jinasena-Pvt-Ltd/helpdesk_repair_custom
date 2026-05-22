@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_location_form_custom" model="ir.ui.view">
+        <field name="name">stock.location.form.custom</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='return_location']" position="after">
+                <field name="x_studio_repair_return_location" string="Repair Return Location" attrs="{}"/>
+                <field name="x_studio_repair_factory_location" string="Repair Factory Location" attrs="{}"/>
+                <field name="x_studio_finished_good_location" string="Finished Good Location"/>
+                <field name="x_studio_temp_location" string="Temp Location"/>
+                <field name="x_studio_return_receipt_location" string="Return Receipt Location" attrs="{}" invisible="1"/>
+                <field name="x_studio_return_sequence" string="Return Sequence" attrs="{}" invisible="1"/>
+                <field name="x_studio_many2many_field_7kpUe" widget="many2many_tags"
+                       options="{&quot;no_create&quot;: true, &quot;color_field&quot;: &quot;color&quot;}"
+                       string="Users (Cell Visibility)"/>
+                <field name="x_studio_users_internal_transfer" string="Users (Internal Transfer)"
+                       widget="many2many_tags"
+                       options="{&quot;no_create&quot;: true, &quot;color_field&quot;: &quot;color&quot;}"
+                       attrs="{&quot;invisible&quot;: []}"/>
+                <field name="x_studio_users_stock_location" string="Users (Stock Location)"
+                       widget="many2many_tags"
+                       options="{&quot;no_create&quot;: true, &quot;color_field&quot;: &quot;color&quot;}"
+                       attrs="{}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_location_tree_custom" model="ir.ui.view">
+        <field name="name">stock.location.tree.custom</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_tree2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='usage']" position="after">
+                <field name="x_studio_repair_return_location" optional="show"/>
+                <field name="x_studio_repair_factory_location" optional="show"/>
+                <field name="x_studio_finished_good_location" string="Finished Good Location" optional="show"/>
+                <field name="x_studio_temp_location" optional="show"/>
+                <field name="id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

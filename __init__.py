@@ -53,6 +53,9 @@ def post_init_hook(cr, registry):
 
     _ensure_stages(env)
 
+    # Enable product repairs on all helpdesk teams so product_id is visible on tickets
+    env['helpdesk.team'].search([]).write({'use_product_repairs': True})
+
     # External IDs owned by our module — never touch these
     our_xmlids = {
         'helpdesk_repair_custom.automation_repair_seq',
@@ -83,3 +86,34 @@ def post_init_hook(cr, registry):
     ])
     if old_rules:
         old_rules.write({'active': False})
+
+    # Remove old hardcoded letter actions that our module replaces with portable versions.
+    # These were Studio-created server actions (no module external ID) that use hardcoded
+    # stage IDs and template IDs. The module's own versions (added above) are portable.
+    superseded_letter_names = {
+        'Send Repair Customer Letter',
+        'Send Final Notice',
+        'Send Final Notice - Estimated',
+        'Send Final Notice - Scrappage',
+        'Send Reminding Letter',
+    }
+    our_letter_xmlids = {
+        'helpdesk_repair_custom.action_send_repair_customer_letter',
+        'helpdesk_repair_custom.action_send_final_notice',
+        'helpdesk_repair_custom.action_send_final_notice_estimated',
+        'helpdesk_repair_custom.action_send_final_notice_scrappage',
+        'helpdesk_repair_custom.action_send_reminding_letter',
+    }
+    our_letter_ids = set()
+    for xmlid in our_letter_xmlids:
+        rec = env.ref(xmlid, raise_if_not_found=False)
+        if rec:
+            our_letter_ids.add(rec.id)
+
+    old_letters = env['ir.actions.server'].search([
+        ('name', 'in', list(superseded_letter_names)),
+        ('id', 'not in', list(our_letter_ids)),
+        ('binding_model_id', '!=', False),
+    ])
+    if old_letters:
+        old_letters.unlink()

@@ -72,9 +72,10 @@ else:
 record['sale_order_id'] = False
 record['x_studio_picking_id'] = False
 record['x_studio_pick_id'] = False
-record['product_id'] = False
 record['lot_id'] = False
 record['x_studio_sn_updated'] = False
+if not record.x_studio_normal_repair_without_serial_no:
+  record['product_id'] = False
 ]]></field>
     </record>
 
@@ -112,19 +113,21 @@ record['x_studio_company_id'] = company.id
         <field name="action_server_id" ref="act_automation_auto_product_from_serial"/>
         <field name="trigger">on_change</field>
         <field name="active">True</field>
-        <field name="on_change_field_ids" eval="[(4, ref('helpdesk.field_helpdesk_ticket__ticket_type_id'))]"/>
+        <field name="on_change_field_ids" eval="[(4, ref('helpdesk_repair_custom.field_helpdesk_ticket__x_studio_serial_no'))]"/>
     </record>
 
     <record id="automation_populate_repair_location" model="base.automation">
         <field name="action_server_id" ref="act_automation_populate_repair_location"/>
         <field name="trigger">on_change</field>
         <field name="active">True</field>
+        <field name="on_change_field_ids" eval="[(4, ref('helpdesk_repair_custom.field_helpdesk_ticket__x_studio_return_receipt_location'))]"/>
     </record>
 
     <record id="automation_clear_on_serial_change" model="base.automation">
         <field name="action_server_id" ref="act_automation_clear_on_serial_change"/>
         <field name="trigger">on_change</field>
         <field name="active">True</field>
+        <field name="on_change_field_ids" eval="[(4, ref('helpdesk_repair_custom.field_helpdesk_ticket__x_studio_serial_no'))]"/>
     </record>
 
     <record id="automation_validate_cancelled_delete" model="base.automation">

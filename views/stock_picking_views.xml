@@ -37,6 +37,24 @@
                 <field name="x_studio_budget_created" invisible="1"/>
                 <field name="x_studio_helpdesk_ticket_id" invisible="1"/>
                 <field name="x_studio_rug_repair" invisible="1"/>
+                <field name="x_studio_created_from_help_ticket" invisible="1"/>
+            </xpath>
+            <!-- Show helpdesk ticket link and source ticket on the picking form body -->
+            <xpath expr="//field[@name='location_dest_id']" position="after">
+                <field name="x_studio_need_approval" invisible="1"/>
+                <field name="x_studio_helpdesk_ticket_id" string="Helpdesk Ticket"
+                       readonly="1" force_save="True"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_helpdesk_ticket_id&quot;,&quot;=&quot;,False]]}"/>
+                <field name="x_studio_created_from_help_ticket" string="Created From Ticket"
+                       readonly="1" force_save="True"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_created_from_help_ticket&quot;,&quot;=&quot;,False]]}"/>
+                <field name="x_studio_task_status" invisible="1"/>
+            </xpath>
+            <!-- Sales order link in the right group (before scheduled date) -->
+            <xpath expr="//label[@for='scheduled_date']" position="before">
+                <field name="x_studio_sales_order" string="Sales Order"
+                       readonly="1" force_save="True"
+                       attrs="{&quot;invisible&quot;: [[&quot;x_studio_sales_order&quot;,&quot;=&quot;,False]]}"/>
             </xpath>
             <xpath expr="//button[@name='button_validate']" position="attributes">
                 <attribute name="attrs">{'invisible': ['|','|','|','|','|','|','|',('x_studio_cancelled','=',True),('x_studio_valid_transfer_lines','=',False),('x_studio_transfer_rejected','=',True),('state','in',['waiting','confirmed']),('show_validate','=',False),'&amp;','&amp;',('x_studio_quotation_type_2','=','Repair'),('x_studio_repair_payment_made','=',False),('x_studio_rug_repair','=',False),'&amp;',('x_studio_pr_type','=','Import'),('x_studio_update_consignment','=',False),'&amp;',('x_studio_quotation_type_2','=','Project'),('x_studio_budget_created','=',False)]}</attribute>

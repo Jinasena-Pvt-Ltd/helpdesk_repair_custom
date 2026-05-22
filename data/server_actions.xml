@@ -19,6 +19,120 @@
             <field name="context">{'search_default_x_studio_created_from_help_ticket': active_id, 'default_x_studio_created_from_help_ticket': active_id}</field>
         </record>
 
+        <!-- Window action: Stock Locations for a user (res.users stat button) -->
+        <record id="action_user_stock_locations" model="ir.actions.act_window">
+            <field name="name">Stock Locations</field>
+            <field name="res_model">stock.location</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('x_studio_users_stock_location', '=', active_id)]</field>
+            <field name="context">{'search_default_x_studio_users_stock_location': active_id, 'default_x_studio_users_stock_location': [active_id]}</field>
+        </record>
+
+        <!-- Window action: Internal Locations for a user (res.users stat button) -->
+        <record id="action_user_internal_locations" model="ir.actions.act_window">
+            <field name="name">Internal Locations</field>
+            <field name="res_model">stock.location</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[('x_studio_users_internal_transfer', '=', active_id)]</field>
+            <field name="context">{'search_default_x_studio_users_internal_transfer': active_id, 'default_x_studio_users_internal_transfer': [active_id]}</field>
+        </record>
+
+        <!-- Server action: RUG Return from Helpdesk (stock.return.picking Return button) -->
+        <record id="action_rug_return_from_helpdesk" model="ir.actions.server">
+            <field name="name">RR - RUG Return from Help desk</field>
+            <field name="model_id" ref="helpdesk_repair_custom.model_stock_return_picking"/>
+            <field name="binding_model_id" ref="helpdesk_repair_custom.model_stock_return_picking"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+if record.id:
+  company_id = env.context.get('allowed_company_ids', [env.user.company_id.id])[0]
+  company = env['res.company'].browse(company_id)
+
+  if company.id == 1:
+    if record.ticket_id.x_studio_virtual_location == False or record.ticket_id.x_studio_source_location == False:
+      raise UserError('Virtual & Source Locations must be setup for Current Logged in User.')
+    if record.location_id.id != record.x_studio_suggested_location_id.id:
+      raise UserError('Return Location should be equal to Suggested Return Location.')
+  else:
+    if record.ticket_id.x_studio_virtual_location_1 == False or record.ticket_id.x_studio_source_location_1 == False:
+      raise UserError('Virtual & Source Locations must be setup for Current Logged in User.')
+    if record.location_id.id != record.x_studio_suggested_location_id_1.id:
+      raise UserError('Return Location should be equal to Suggested Return Location.')
+
+  for qtys in record.product_return_moves:
+    if qtys.quantity != 1:
+      raise UserError('Quantity should be 1 for all the return lines.')
+
+  source_loc = env['stock.location'].search([('usage', '=', 'customer')], limit=1)
+  if source_loc:
+    if company.id == 1:
+      opt_type = env['stock.picking.type'].search([
+        ('default_location_dest_id', '=', record.ticket_id.x_studio_return_receipt_location.id),
+        ('code', '=', 'incoming'), ('name', '=', 'Returns'), ('company_id', '=', company.id)
+      ], limit=1)
+    else:
+      opt_type = env['stock.picking.type'].search([
+        ('default_location_dest_id', '=', record.ticket_id.x_studio_return_receipt_location.id),
+        ('code', '=', 'incoming'), ('name', '=', 'Receipts'), ('company_id', '=', company.id)
+      ], limit=1)
+
+    if opt_type:
+      prod_move = env['stock.picking'].create({
+        'x_studio_helpdesk_ticket_id': record.ticket_id.id,
+        'picking_type_id': opt_type.id,
+        'location_id': source_loc.id,
+        'location_dest_id': record.location_id.id,
+        'origin': ('Return of ' + record.picking_id.name),
+        'partner_id': record.partner_id.id,
+        'company_id': company.id,
+      })
+      update_prod_move = env['stock.picking'].search([('id', '=', prod_move.id), ('company_id', '=', company.id)], limit=1)
+      if update_prod_move:
+        pro_group = env['procurement.group'].search([('sale_id', '=', record.sale_order_id.id)], limit=1)
+        stock_move = env['stock.move'].create({
+          'picking_id': update_prod_move.id,
+          'name': ('New Move:' + record.ticket_id.product_id.name),
+          'reference': update_prod_move.name,
+          'picking_type_id': update_prod_move.picking_type_id.id,
+          'product_id': record.ticket_id.product_id.id,
+          'location_id': update_prod_move.location_id.id,
+          'location_dest_id': update_prod_move.location_dest_id.id,
+          'product_uom_qty': 1.00,
+          'product_uom': record.ticket_id.product_id.uom_id.id,
+          'state': 'assigned',
+          'group_id': pro_group.id,
+          'company_id': company.id,
+        })
+        stock_move_line = env['stock.move.line'].create({
+          'move_id': stock_move.id,
+          'picking_id': update_prod_move.id,
+          'picking_type_id': update_prod_move.picking_type_id.id,
+          'product_id': record.ticket_id.product_id.id,
+          'product_uom_id': record.ticket_id.product_id.uom_id.id,
+          'location_id': update_prod_move.location_id.id,
+          'location_dest_id': update_prod_move.location_dest_id.id,
+          'lot_id': record.ticket_id.x_studio_serial_no.id,
+          'qty_done': 1.00,
+          'company_id': company.id,
+        })
+        update_ticket = env['helpdesk.ticket'].search([('id', '=', record.ticket_id.id), ('company_id', '=', company.id)], limit=1)
+        if update_ticket:
+          update_ticket.write({'picking_ids': [(4, update_prod_move.id)]})
+        action = {
+          'name': 'Return',
+          'domain': [('id', '=', update_prod_move.id)],
+          'type': 'ir.actions.act_window',
+          'res_model': 'stock.picking',
+          'view_mode': 'tree,form',
+          'view_type': 'form',
+          'view_id': False,
+          'context': False,
+        }
+    else:
+      raise UserError('The selected return receipt location is not correct.')
+]]></field>
+        </record>
+
         <!-- Server action: Create Repair Route (Without Serial No) -->
         <record id="action_create_repair_route" model="ir.actions.server">
             <field name="name">RR - Auto Create Repair Route</field>
@@ -53,16 +167,10 @@ if record.id:
     source_loc = record.x_studio_source_location_1.id
 
   record['x_studio_repair_serial_created'] = True
-  dest_loc = env['stock.location'].search([('usage', '=', 'customer')],limit=1)
-  if dest_loc:
-    prod_lines=[]
-    prod_lines.append([0,0,{
-      'product_id':record.product_id.id,
-      'product_uom_id':record.product_id.uom_id.id,
-      'location_id':virtual_loc,
-      'location_dest_id':dest_loc.id,
-      'qty_done':1.00}])
-
+  # Only create reference outgoing if no sale-order picking exists yet
+  if not record.x_studio_pick_id:
+   dest_loc = env['stock.location'].search([('usage', '=', 'customer')],limit=1)
+   if dest_loc:
     opt_type = env['stock.picking.type'].search([('default_location_src_id', '=', record.x_studio_return_receipt_location.id),('code', '=', 'outgoing'),('company_id', '=', company.id)],limit=1)
     if opt_type:
      prod_move = env['stock.picking'].create({'x_studio_created_from_help_ticket':record.id,'x_studio_helpdesk_ticket_id':record.id,'picking_type_id':opt_type.id,'location_id':source_loc,'location_dest_id':dest_loc.id,'company_id':company.id})
@@ -114,6 +222,9 @@ if record.id:
     virtual_loc = record.x_studio_virtual_location_1.id
     source_loc = record.x_studio_source_location_1.id
 
+  if not record.product_id:
+    raise UserError('Product must be set on the ticket before creating a Repair Serial Number.')
+
   seq = env['ir.sequence'].with_context(company_id=company.id).next_by_code('repair.serial.seq')
 
   rep_serial = env['stock.production.lot'].create({'name':seq,'product_id':record.product_id.id,'company_id':company.id})
@@ -121,9 +232,10 @@ if record.id:
   record['lot_id'] = rep_serial.id
   record['x_studio_repair_serial_created'] = True
 
-  dest_loc = env['stock.location'].search([('usage', '=', 'customer')],limit=1)
-  if dest_loc:
-
+  # Only create reference outgoing if no sale-order picking exists yet
+  if not record.x_studio_pick_id:
+   dest_loc = env['stock.location'].search([('usage', '=', 'customer')],limit=1)
+   if dest_loc:
     opt_type = env['stock.picking.type'].search([('default_location_src_id', '=', record.x_studio_return_receipt_location.id),('code', '=', 'outgoing'),('company_id', '=', company.id)],limit=1)
     if opt_type:
      prod_move = env['stock.picking'].create({'x_studio_created_from_help_ticket':record.id,'x_studio_helpdesk_ticket_id':record.id,'picking_type_id':opt_type.id,'location_id':source_loc,'location_dest_id':dest_loc.id,'company_id':company.id})
@@ -395,6 +507,103 @@ record['x_studio_sn_updated'] = True
             <field name="code">
 record['x_studio_confirm_draft_quotation'] = True
             </field>
+        </record>
+
+        <!-- ── Customer letter / notice buttons ── -->
+
+        <record id="action_send_repair_customer_letter" model="ir.actions.server">
+            <field name="name">Send Repair Customer Letter</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer'), ('team_ids', 'in', record.team_id.id)], limit=1)
+if not stage:
+  stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer')], limit=1)
+if not stage or record.stage_id.id != stage.id:
+  raise UserError('The repaired item should be handed over to customer to send the report.')
+
+template = env.ref('helpdesk_repair_custom.template_repair_customer_letter', raise_if_not_found=False)
+if template:
+  template.send_mail(record.id, force_send=True, email_values={'recipient_ids': [record.partner_id.id]})
+  records.message_post(body="Repair Customer Letter has been sent to customer: " + str(record.partner_id.name))
+]]></field>
+        </record>
+
+        <record id="action_send_final_notice" model="ir.actions.server">
+            <field name="name">Send Final Notice</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer'), ('team_ids', 'in', record.team_id.id)], limit=1)
+if not stage:
+  stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer')], limit=1)
+if not stage or record.stage_id.id != stage.id:
+  raise UserError('The repaired item should be handed over to customer to send the report.')
+
+template = env.ref('helpdesk_repair_custom.template_repair_final_notice', raise_if_not_found=False)
+if template:
+  template.send_mail(record.id, force_send=True, email_values={'recipient_ids': [record.partner_id.id]})
+  records.message_post(body="Repair Customer Letter has been sent to customer: " + str(record.partner_id.name))
+]]></field>
+        </record>
+
+        <record id="action_send_final_notice_estimated" model="ir.actions.server">
+            <field name="name">Send Final Notice - Estimated</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer'), ('team_ids', 'in', record.team_id.id)], limit=1)
+if not stage:
+  stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer')], limit=1)
+if not stage or record.stage_id.id != stage.id:
+  raise UserError('The repaired item should be handed over to customer to send the report.')
+
+template = env.ref('helpdesk_repair_custom.template_repair_final_notice_estimated', raise_if_not_found=False)
+if template:
+  template.send_mail(record.id, force_send=True, email_values={'recipient_ids': [record.partner_id.id]})
+  records.message_post(body="Repair Customer Letter has been sent to customer: " + str(record.partner_id.name))
+]]></field>
+        </record>
+
+        <record id="action_send_final_notice_scrappage" model="ir.actions.server">
+            <field name="name">Send Final Notice - Scrappage</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer'), ('team_ids', 'in', record.team_id.id)], limit=1)
+if not stage:
+  stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer')], limit=1)
+if not stage or record.stage_id.id != stage.id:
+  raise UserError('The repaired item should be handed over to customer to send the report.')
+
+template = env.ref('helpdesk_repair_custom.template_repair_final_notice_scrappage', raise_if_not_found=False)
+if template:
+  template.send_mail(record.id, force_send=True, email_values={'recipient_ids': [record.partner_id.id]})
+  records.message_post(body="Repair Customer Letter has been sent to customer: " + str(record.partner_id.name))
+]]></field>
+        </record>
+
+        <record id="action_send_reminding_letter" model="ir.actions.server">
+            <field name="name">Send Reminding Letter</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="binding_model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="state">code</field>
+            <field name="code"><![CDATA[
+stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer'), ('team_ids', 'in', record.team_id.id)], limit=1)
+if not stage:
+  stage = env['helpdesk.stage'].search([('name', '=', 'Handed Over to Customer')], limit=1)
+if not stage or record.stage_id.id != stage.id:
+  raise UserError('The repaired item should be handed over to customer to send the report.')
+
+template = env.ref('helpdesk_repair_custom.template_repair_reminding_letter', raise_if_not_found=False)
+if template:
+  template.send_mail(record.id, force_send=True, email_values={'recipient_ids': [record.partner_id.id]})
+  records.message_post(body="Repair Customer Letter has been sent to customer: " + str(record.partner_id.name))
+]]></field>
         </record>
 
     </data>

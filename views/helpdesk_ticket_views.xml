@@ -43,19 +43,19 @@
                     <attribute name="options">{'clickable': False}</attribute>
                 </xpath>
 
-                <!-- team_id: readonly once RUG flow started -->
+                <!-- team_id: readonly once RUG flow started or after New stage -->
                 <xpath expr="//field[@name='team_id']" position="attributes">
-                    <attribute name="attrs">{"readonly": ["|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True]]}</attribute>
+                    <attribute name="attrs">{"readonly": ["|","|","|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True],["x_studio_stage_name","!=","New"],["x_studio_valid_return","=",True]]}</attribute>
                 </xpath>
 
-                <!-- user_id: readonly once RUG flow started -->
+                <!-- user_id: readonly once RUG flow started or after New stage -->
                 <xpath expr="//field[@name='user_id']" position="attributes">
-                    <attribute name="attrs">{"readonly": ["|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True]]}</attribute>
+                    <attribute name="attrs">{"readonly": ["|","|","|","|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True],["x_studio_repair_serial_created","=",True],["x_studio_stage_name","!=","New"],["x_studio_valid_return","=",True]]}</attribute>
                 </xpath>
 
-                <!-- ticket_type_id: readonly once approved/created, cleared domain -->
+                <!-- ticket_type_id: readonly once approved/created or after New stage, cleared domain -->
                 <xpath expr="//field[@name='ticket_type_id']" position="attributes">
-                    <attribute name="attrs">{"readonly": ["|","|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True],["x_studio_repair_serial_created","=",True]]}</attribute>
+                    <attribute name="attrs">{"readonly": ["|","|","|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True],["x_studio_repair_serial_created","=",True],["x_studio_stage_name","!=","New"]]}</attribute>
                     <attribute name="domain">[]</attribute>
                 </xpath>
 
@@ -75,11 +75,15 @@
                            string="Return Receipt Location"
                            options="{&quot;no_create&quot;:true}"
                            domain="[('x_studio_many2many_field_7kpUe','=',uid)]"
-                           attrs="{&quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,[&quot;x_studio_rug_approved&quot;,&quot;=&quot;,True],[&quot;x_studio_rug_request_sent&quot;,&quot;=&quot;,True],[&quot;x_studio_valid_confirm_return&quot;,&quot;=&quot;,True],[&quot;x_studio_repair_serial_created&quot;,&quot;=&quot;,True]], &quot;required&quot;: [[&quot;x_studio_valid_confirm_return&quot;,&quot;=&quot;,True]]}"/>
+                           attrs="{&quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,[&quot;x_studio_rug_approved&quot;,&quot;=&quot;,True],[&quot;x_studio_rug_request_sent&quot;,&quot;=&quot;,True],[&quot;x_studio_valid_confirm_return&quot;,&quot;=&quot;,True],[&quot;x_studio_repair_serial_created&quot;,&quot;=&quot;,True]], &quot;required&quot;: [[&quot;user_id&quot;,&quot;!=&quot;,False]]}"/>
                     <field name="x_studio_repair_location" string="Repair Location"
                            force_save="True" attrs="{}" readonly="1"/>
+                    <field name="x_studio_repair_reason" string="Repair Reason"
+                           widget="many2many_tags"
+                           options="{&quot;no_create&quot;: true, &quot;color_field&quot;: &quot;x_color&quot;}"
+                           attrs="{&quot;required&quot;: [[&quot;user_id&quot;,&quot;!=&quot;,False]], &quot;readonly&quot;: [&quot;|&quot;,[&quot;x_studio_stage_name&quot;,&quot;!=&quot;,&quot;New&quot;],[&quot;x_studio_cancelled&quot;,&quot;=&quot;,True]]}"/>
                     <field name="x_studio_job_location" string="Job Location"
-                           attrs="{&quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,[&quot;ticket_type_id&quot;,&quot;=&quot;,False],[&quot;fsm_task_count&quot;,&quot;&gt;&quot;,0],[&quot;x_studio_send_to_factory&quot;,&quot;=&quot;,True]]}"/>
+                           attrs="{&quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,[&quot;ticket_type_id&quot;,&quot;=&quot;,False],[&quot;fsm_task_count&quot;,&quot;&gt;&quot;,0],[&quot;x_studio_send_to_factory&quot;,&quot;=&quot;,True],[&quot;x_studio_cancelled&quot;,&quot;=&quot;,True]], &quot;required&quot;: [[&quot;x_studio_valid_confirm_return&quot;,&quot;=&quot;,True]]}"/>
                 </xpath>
 
                 <!-- Invisible computed/status fields after company_id -->
@@ -117,20 +121,20 @@
 
                 <!-- partner_id: readonly/required when assigned -->
                 <xpath expr="//field[@name='partner_id']" position="attributes">
-                    <attribute name="attrs">{"readonly": ["|","|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True],["x_studio_repair_serial_created","=",True]], "required": [["user_id","!=",False]]}</attribute>
+                    <attribute name="attrs">{"readonly": ["|","|","|","|","|",["x_studio_rug_approved","=",True],["x_studio_rug_request_sent","=",True],["x_studio_repair_serial_created","=",True],["x_studio_stage_name","!=","New"],["x_studio_valid_return","=",True],["x_studio_cancelled","=",True]], "required": [["user_id","!=",False]]}</attribute>
                 </xpath>
 
                 <!-- Serial number field + move sale_order_id after email_cc -->
                 <xpath expr="//field[@name='email_cc']" position="after">
-                    <field name="x_studio_serial_number" string="Serial Number"
+                    <field name="x_studio_serial_no" string="Serial Number"
                            options="{&quot;no_create&quot;:true}"
-                           attrs="{&quot;invisible&quot;: [&quot;&amp;&quot;,[&quot;product_id&quot;,&quot;!=&quot;,False],[&quot;x_studio_tracking&quot;,&quot;!=&quot;,&quot;serial&quot;]], &quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,[&quot;x_studio_rug_approved&quot;,&quot;=&quot;,True],[&quot;x_studio_rug_request_sent&quot;,&quot;=&quot;,True],[&quot;x_studio_normal_repair_without_serial_no&quot;,&quot;=&quot;,True],[&quot;ticket_type_id&quot;,&quot;=&quot;,False]], &quot;required&quot;: [&quot;|&quot;,[&quot;x_studio_rug_repair&quot;,&quot;=&quot;,True],[&quot;x_studio_normal_repair_with_serial_no&quot;,&quot;=&quot;,True]]}"/>
+                           attrs="{&quot;invisible&quot;: [&quot;&amp;&quot;,[&quot;product_id&quot;,&quot;!=&quot;,False],[&quot;x_studio_tracking&quot;,&quot;!=&quot;,&quot;serial&quot;]], &quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,[&quot;x_studio_rug_approved&quot;,&quot;=&quot;,True],[&quot;x_studio_rug_request_sent&quot;,&quot;=&quot;,True],[&quot;x_studio_normal_repair_without_serial_no&quot;,&quot;=&quot;,True],[&quot;ticket_type_id&quot;,&quot;=&quot;,False],[&quot;x_studio_stage_name&quot;,&quot;!=&quot;,&quot;New&quot;],[&quot;x_studio_valid_return&quot;,&quot;=&quot;,True]], &quot;required&quot;: [&quot;|&quot;,[&quot;x_studio_rug_repair&quot;,&quot;=&quot;,True],[&quot;x_studio_normal_repair_with_serial_no&quot;,&quot;=&quot;,True]]}"/>
                     <xpath expr="//field[@name='sale_order_id']" position="move"/>
                 </xpath>
 
                 <!-- product_id: attrs, readonly, required -->
                 <xpath expr="//field[@name='product_id']" position="attributes">
-                    <attribute name="attrs">{"invisible": [["use_credit_notes","=",False],["use_product_returns","=",False],["use_product_repairs","=",False]], "readonly": ["|","|","|",["x_studio_rug_repair","=",True],["x_studio_normal_repair_with_serial_no","=",True],["x_studio_repair_serial_created","=",True],["ticket_type_id","=",False]], "required": [["x_studio_normal_repair_without_serial_no","=",True]]}</attribute>
+                    <attribute name="attrs">{"invisible": [["use_credit_notes","=",False],["use_product_returns","=",False],["use_product_repairs","=",False]], "readonly": ["|","|","|","|",["x_studio_rug_repair","=",True],["x_studio_normal_repair_with_serial_no","=",True],["x_studio_repair_serial_created","=",True],["ticket_type_id","=",False],["x_studio_cancelled","=",True]], "required": [["x_studio_normal_repair_without_serial_no","=",True]]}</attribute>
                 </xpath>
 
                 <!-- Invisible fields after product_id -->
@@ -157,22 +161,17 @@
                     <field name="x_studio_picking_id" invisible="1"/>
                 </xpath>
 
-                <!-- sale_order_id: attrs -->
+                <!-- sale_order_id: clear static invisible/readonly set by helpdesk_sale, apply our attrs -->
                 <xpath expr="//field[@name='sale_order_id']" position="attributes">
                     <attribute name="attrs">{"readonly": ["|","|","|",["x_studio_rug_repair","=",True],["x_studio_normal_repair_with_serial_no","=",True],["x_studio_normal_repair_without_serial_no","=",True],["ticket_type_id","=",False]], "invisible": [["x_studio_normal_repair_without_serial_no","=",True]]}</attribute>
                     <attribute name="domain">[["partner_id","=",partner_id]]</attribute>
-                </xpath>
-
-                <!-- Serial No field (x_studio_serial_no) in main group -->
-                <xpath expr="//field[@name='lot_id']" position="after">
-                    <field name="x_studio_serial_no" string="Serial Number"
-                           options="{&quot;no_create&quot;:true}"
-                           attrs="{&quot;invisible&quot;: [&quot;&amp;&quot;,[&quot;product_id&quot;,&quot;!=&quot;,False],[&quot;x_studio_tracking&quot;,&quot;!=&quot;,&quot;serial&quot;]], &quot;readonly&quot;: [&quot;|&quot;,&quot;|&quot;,&quot;|&quot;,[&quot;x_studio_rug_approved&quot;,&quot;=&quot;,True],[&quot;x_studio_rug_request_sent&quot;,&quot;=&quot;,True],[&quot;x_studio_normal_repair_without_serial_no&quot;,&quot;=&quot;,True],[&quot;ticket_type_id&quot;,&quot;=&quot;,False]], &quot;required&quot;: [&quot;|&quot;,[&quot;x_studio_rug_repair&quot;,&quot;=&quot;,True],[&quot;x_studio_normal_repair_with_serial_no&quot;,&quot;=&quot;,True]]}"/>
+                    <attribute name="invisible"/>
+                    <attribute name="readonly"/>
                 </xpath>
 
                 <!-- lot_id attrs -->
                 <xpath expr="//field[@name='lot_id']" position="attributes">
-                    <attribute name="attrs">{"invisible": ["|","|","|","|","|",["tracking","in",["none",False]],["x_studio_rug_repair","=",True],["x_studio_serial_number","!=",False],["x_studio_normal_repair_with_serial_no","=",True],["x_studio_normal_repair_without_serial_no","=",True],"&amp;","&amp;",["use_credit_notes","=",False],["use_product_returns","=",False],["use_product_repairs","=",False]], "readonly": [["x_studio_rug_repair","=",True]]}</attribute>
+                    <attribute name="attrs">{"invisible": ["|","|","|","|","|",["tracking","in",["none",False]],["x_studio_rug_repair","=",True],["x_studio_serial_no","!=",False],["x_studio_normal_repair_with_serial_no","=",True],["x_studio_normal_repair_without_serial_no","=",True],"&amp;","&amp;",["use_credit_notes","=",False],["use_product_returns","=",False],["use_product_repairs","=",False]], "readonly": [["x_studio_rug_repair","=",True]]}</attribute>
                 </xpath>
 
                 <!-- Factory Repair Details notebook page -->
@@ -208,12 +207,8 @@
                     </notebook>
                 </xpath>
 
-                <!-- Repair reason (many2many_tags) in left group -->
-                <xpath expr="//field[@name='description']" position="after">
-                    <field name="x_studio_repair_reason" string="Repair Reason"
-                           widget="many2many_tags"
-                           options="{&quot;no_create&quot;: true, &quot;color_field&quot;: &quot;x_color&quot;}"
-                           attrs="{&quot;required&quot;: [[&quot;user_id&quot;,&quot;!=&quot;,False]], &quot;readonly&quot;: [&quot;|&quot;,[&quot;x_studio_stage_name&quot;,&quot;!=&quot;,&quot;New&quot;],[&quot;x_studio_cancelled&quot;,&quot;=&quot;,True]]}"/>
+                <!-- Cancel reason in right group (after sla_deadline, matching Studio) -->
+                <xpath expr="//field[@name='sla_deadline']" position="after">
                     <field name="x_studio_cancel_reason" string="Cancel Reason"
                            attrs="{&quot;readonly&quot;: [[&quot;x_studio_cancelled&quot;,&quot;=&quot;,True]]}"/>
                 </xpath>
@@ -266,7 +261,7 @@
                 </xpath>
 
                 <!-- Warranty Details notebook page -->
-                <xpath expr="//notebook[2]" position="inside">
+                <xpath expr="//notebook[@name='studio_notebook_8aukI']" position="inside">
                     <page string="Warranty Details"
                           attrs="{&quot;invisible&quot;: [[&quot;x_studio_normal_repair_without_serial_no&quot;,&quot;=&quot;,True]]}">
                         <group>
@@ -286,7 +281,7 @@
                 </xpath>
 
                 <!-- Cancel/Reopen Log notebook page -->
-                <xpath expr="//notebook[2]" position="inside">
+                <xpath expr="//notebook[@name='studio_notebook_8aukI']" position="inside">
                     <page string="Cancel/ Reopen Log">
                         <group>
                             <group string="Cancel / Reopen">
@@ -304,7 +299,7 @@
                 </xpath>
 
                 <!-- Repair Status page (invisible, matches Studio) -->
-                <xpath expr="//notebook[2]" position="inside">
+                <xpath expr="//notebook[@name='studio_notebook_8aukI']" position="inside">
                     <page string="Repair Status" name="studio_page_N4kvO" attrs="{}" invisible="1">
                         <group name="studio_group_N4kvO">
                             <group name="studio_group_N4kvO_left" string="Status Log">
@@ -408,7 +403,7 @@
                 <!-- Repair Order header button: modify visibility (from base helpdesk_repair) -->
                 <xpath expr="//header/button[@name='%(helpdesk_repair.action_repair_order_form)d']"
                        position="attributes">
-                    <attribute name="attrs">{'invisible': ['|','|',('x_studio_cancelled', '=', True),('pickings_count', '=', 0),('use_product_repairs', '=', False)]}</attribute>
+                    <attribute name="attrs">{'invisible': ['|','|','|',('x_studio_cancelled', '=', True),('pickings_count', '=', 0),('use_product_repairs', '=', False),('x_studio_repair_serial_created', '=', True)]}</attribute>
                 </xpath>
 
                 <!-- Receipt button (base stock return): modify visibility -->
@@ -416,9 +411,9 @@
                     <attribute name="attrs">{'invisible': ['|','|','|','|','|',('x_studio_cancelled', '=', True),('use_product_returns', '=', False),('x_studio_valid_return', '=', True),('ticket_type_id', '=', False),('x_studio_rug_repair', '!=', True),'&amp;',('x_studio_normal_repair_without_serial_no', '=', False),('x_studio_sn_updated', '=', False)]}</attribute>
                 </xpath>
 
-                <!-- Receipt button: add context -->
+                <!-- Receipt button: add context (pass repair_rug flag so wizard shows RUG Return only for RUG tickets) -->
                 <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="attributes">
-                    <attribute name="context">{'default_ticket_id': id, 'default_company_id': company_id, 'default_picking_id': x_studio_pick_id}</attribute>
+                    <attribute name="context">{'default_ticket_id': id, 'default_company_id': company_id, 'default_picking_id': x_studio_pick_id, 'default_x_studio_repair_rug': x_studio_rug_repair}</attribute>
                 </xpath>
 
                 <!-- FSM task button: visibility -->
@@ -431,7 +426,7 @@
                     <button type="action" name="%(helpdesk_repair_custom.action_change_type_to_rug)d"
                             string="Change Repair Type To RUG" class="btn-primary"
                             confirm="Are you sure you want to change the repair type to RUG?"
-                            attrs="{'invisible': ['|','|','|',('x_studio_cancelled', '=', True),'&amp;',('x_studio_normal_repair_with_serial_no', '=', False),'|',('x_studio_rug_repair', '=', False),('x_studio_rug_confirmed', '=', True),'&amp;',('x_studio_normal_repair_with_serial_no', '=', True),('x_studio_valid_return', '=', False),('x_studio_estimation_approved_stage_updated', '=', True)]}"/>
+                            attrs="{'invisible': ['|','|','|',('x_studio_cancelled', '=', True),('x_studio_normal_repair_with_serial_no', '=', False),('x_studio_valid_return', '=', False),('x_studio_estimation_approved_stage_updated', '=', True)]}"/>
                 </xpath>
 
                 <!-- Send to Factory button (before FSM task button) -->
@@ -496,7 +491,7 @@
                 <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="before">
                     <button type="action" name="%(helpdesk_repair_custom.action_update_serial)d"
                             string="Update Serial" class="btn-primary"
-                            attrs="{'invisible': ['|','|','|',('x_studio_rug_repair', '=', False),('x_studio_rug_confirmed', '=', True),('x_studio_serial_no', '=', False),('x_studio_sn_updated', '=', True)]}"/>
+                            attrs="{'invisible': ['|','|','|',('x_studio_normal_repair_without_serial_no', '=', True),('x_studio_serial_no', '=', False),'&amp;',('x_studio_normal_repair_with_serial_no', '=', True),('x_studio_sn_updated', '=', True),'&amp;',('x_studio_rug_repair', '=', True),('x_studio_sn_updated', '=', True)]}"/>
                 </xpath>
 
                 <!-- Receipt (first, for RUG / normal with serial) -->

@@ -6,6 +6,9 @@ from odoo.exceptions import UserError
 class HelpdeskTicket(models.Model):
     _inherit = 'helpdesk.ticket'
 
+    # ── Sequence-assigned name (default 'New' so required check passes; on_create automation replaces it) ──
+    name = fields.Char(string='Subject', default='New', required=True, index=True)
+
     # ── Repair type flags (copied from ticket type) ─────────────────────────
     x_studio_rug_repair = fields.Boolean(string='Repair Under Warranty', store=True)
     x_studio_rug_confirmed = fields.Boolean(string='RUG Confirmed', store=True)
@@ -113,7 +116,8 @@ class HelpdeskTicket(models.Model):
     # ── SO / financial ───────────────────────────────────────────────────────
     x_studio_sale_order = fields.Many2one(
         'sale.order', string='Sales Order',
-        compute='_compute_x_studio_sale_order', store=False)
+        compute='_compute_x_studio_sale_order', search='_search_x_studio_sale_order',
+        store=False)
     x_studio_balance_due = fields.Float(string='Balance Due')
     x_studio_items = fields.Many2many('product.product', string='Items')
     x_studio_qty = fields.Char(string='Qty')
@@ -264,7 +268,8 @@ class HelpdeskTicket(models.Model):
         for rec in self:
             valid = False
             for line in rec.picking_ids:
-                if line.state != 'cancel':
+                # Only count return receipts (incoming from customer), not the original outgoing delivery
+                if line.state != 'cancel' and line.location_id.usage == 'customer':
                     valid = True
             rec.x_studio_valid_return = valid
 
@@ -272,7 +277,8 @@ class HelpdeskTicket(models.Model):
         for rec in self:
             valid = False
             for line in rec.picking_ids:
-                if line.state == 'done':
+                # Only count return receipts (incoming from customer), not the original outgoing delivery
+                if line.state == 'done' and line.location_id.usage == 'customer':
                     valid = True
             rec.x_studio_valid_confirm_return = valid
 
@@ -306,6 +312,10 @@ class HelpdeskTicket(models.Model):
                 if invoices.sale_order_id:
                     so = invoices.sale_order_id.id
             rec.x_studio_sale_order = so
+
+    def _search_x_studio_sale_order(self, operator, value):
+        tasks = self.env['project.task'].search([('sale_order_id', operator, value)])
+        return [('fsm_task_ids', 'in', tasks.ids)]
 
     def _compute_x_studio_unit_price(self):
         for rec in self:
@@ -527,23 +537,40 @@ class HelpdeskTicket(models.Model):
 
     @api.onchange('ticket_type_id')
     def _onchange_ticket_type_id(self):
-        """Copy repair-type flags from the selected ticket type to the ticket."""
+        """Copy repair-type flags from the selected ticket type; clear prior serial/product selection."""
         for rec in self:
             tt = rec.ticket_type_id
             rec.x_studio_rug_repair = tt.x_studio_rug if tt else False
             rec.x_studio_rug_confirmed = tt.x_studio_rug_confirmed if tt else False
             rec.x_studio_normal_repair_with_serial_no = tt.x_studio_with_serial_no if tt else False
             rec.x_studio_normal_repair_without_serial_no = tt.x_studio_without_serial_no if tt else False
+            rec.sale_order_id = False
+            rec.x_studio_picking_id = False
+            rec.x_studio_pick_id = 0
+            rec.lot_id = False
+            rec.x_studio_serial_no = False
+            # For "Without Serial No" type, product is set manually — don't clear it
+            if not (tt and tt.x_studio_without_serial_no):
+                rec.product_id = False
 
     def _sync_ticket_type_flags(self):
-        """Write repair-type flags from the current ticket_type_id to the ticket."""
+        """Write repair-type flags from the current ticket_type_id; clear prior serial/product selection."""
         tt = self.ticket_type_id
-        super(HelpdeskTicket, self).write({
+        updates = {
             'x_studio_rug_repair': tt.x_studio_rug if tt else False,
             'x_studio_rug_confirmed': tt.x_studio_rug_confirmed if tt else False,
             'x_studio_normal_repair_with_serial_no': tt.x_studio_with_serial_no if tt else False,
             'x_studio_normal_repair_without_serial_no': tt.x_studio_without_serial_no if tt else False,
-        })
+            'sale_order_id': False,
+            'x_studio_picking_id': False,
+            'x_studio_pick_id': 0,
+            'lot_id': False,
+            'x_studio_serial_no': False,
+        }
+        # For "Without Serial No" type, product is manually selected — don't clear it
+        if not (tt and tt.x_studio_without_serial_no):
+            updates['product_id'] = False
+        super(HelpdeskTicket, self).write(updates)
 
     @api.onchange('x_studio_serial_no')
     def _onchange_serial_no(self):
