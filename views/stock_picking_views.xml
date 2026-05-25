@@ -38,6 +38,17 @@
                 <field name="x_studio_helpdesk_ticket_id" invisible="1"/>
                 <field name="x_studio_rug_repair" invisible="1"/>
                 <field name="x_studio_created_from_help_ticket" invisible="1"/>
+                <field name="x_studio_location_is_customer" invisible="1"/>
+                <field name="x_studio_so_fully_paid" invisible="1"/>
+                <field name="x_studio_dispatch_done" invisible="1"/>
+                <button name="action_dispatch_return" type="object" string="Dispatch"
+                        class="btn-primary"
+                        attrs="{'invisible': ['|','|','|','|',
+                            ('state','!=','done'),
+                            ('x_studio_location_is_customer','=',False),
+                            ('x_studio_helpdesk_ticket_id','=',False),
+                            ('x_studio_so_fully_paid','=',False),
+                            ('x_studio_dispatch_done','=',True)]}"/>
             </xpath>
             <!-- Show helpdesk ticket link and source ticket on the picking form body -->
             <xpath expr="//field[@name='location_dest_id']" position="after">

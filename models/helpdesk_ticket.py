@@ -495,20 +495,8 @@ class HelpdeskTicket(models.Model):
 
     def _compute_x_studio_handed_over(self):
         for rec in self:
-            valid = False
-            c = 0
-            for line in rec.picking_ids:
-                if line.state == 'done':
-                    c += 1
-            if c > 1:
-                valid = True
-            if valid and not rec.x_studio_handed_over:
-                rec['x_studio_handed_over'] = True
-                stage_id = rec._get_stage_by_name('Handed Over to Customer')
-                if stage_id:
-                    rec['stage_id'] = stage_id
-                    rec['x_studio_stage_date'] = datetime.datetime.now()
-            rec.x_studio_handed_over = valid
+            c = sum(1 for line in rec.picking_ids if line.state == 'done')
+            rec.x_studio_handed_over = c > 1
 
     # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     # Serial number auto-population

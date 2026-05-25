@@ -34,6 +34,34 @@ class StockPicking(models.Model):
     x_studio_budget_created = fields.Boolean(string='Budget Created')
     x_studio_is_dispatch = fields.Boolean(string='Is Dispatch')
 
+    # ── Dispatch button gate fields (computed, for picking form visibility) ─
+    x_studio_location_is_customer = fields.Boolean(
+        compute='_compute_x_studio_location_is_customer', store=False)
+    x_studio_so_fully_paid = fields.Boolean(
+        compute='_compute_x_studio_picking_dispatch_gate', store=False,
+        string='SO Fully Paid')
+    x_studio_dispatch_done = fields.Boolean(
+        compute='_compute_x_studio_picking_dispatch_gate', store=False,
+        string='Dispatch Done')
+
+    @api.depends('location_id', 'location_id.usage')
+    def _compute_x_studio_location_is_customer(self):
+        for p in self:
+            p.x_studio_location_is_customer = (p.location_id.usage == 'customer')
+
+    @api.depends(
+        'x_studio_helpdesk_ticket_id',
+        'x_studio_helpdesk_ticket_id.fsm_task_ids',
+        'x_studio_helpdesk_ticket_id.fsm_task_ids.x_studio_so_fully_paid',
+        'x_studio_helpdesk_ticket_id.fsm_task_ids.x_studio_dispatch_done',
+    )
+    def _compute_x_studio_picking_dispatch_gate(self):
+        for picking in self:
+            ticket = picking.x_studio_helpdesk_ticket_id
+            tasks = ticket.fsm_task_ids if ticket else self.env['project.task']
+            picking.x_studio_so_fully_paid = any(t.x_studio_so_fully_paid for t in tasks)
+            picking.x_studio_dispatch_done = any(t.x_studio_dispatch_done for t in tasks)
+
     x_studio_valid_transfer_lines = fields.Boolean(
         string='Valid Transfer Lines',
         compute='_compute_x_studio_valid_transfer_lines', store=False)
@@ -94,8 +122,6 @@ class StockPicking(models.Model):
                     "Paid: %.2f  |  Required: %.2f" % (total_paid, required)
                 )
         result = super().button_validate()
-        customer_loc = self.env['stock.location'].search(
-            [('usage', '=', 'customer')], limit=1)
         for picking in pending:
             if picking.state != 'done' or not picking.sale_id:
                 continue
@@ -121,14 +147,11 @@ class StockPicking(models.Model):
                                 'x_studio_repair_started_stage_updated': True,
                             })
                             task.x_studio_valid_delivered_so = True
-                # Done delivery to customer location → Repair Completed
-                if customer_loc and not ticket.x_studio_repair_complete_stage_updated:
-                    done_cust = self.env['stock.picking'].search([
-                        ('sale_id', '=', so.id),
-                        ('state', '=', 'done'),
-                        ('location_dest_id', '=', customer_loc.id),
-                    ], limit=1)
-                    if done_cust:
+                # ALL outgoing deliveries on this SO done → Repair Completed
+                if not ticket.x_studio_repair_complete_stage_updated:
+                    outgoing = so.picking_ids.filtered(
+                        lambda p: p.picking_type_code == 'outgoing')
+                    if outgoing and all(p.state == 'done' for p in outgoing):
                         stage_id = ticket._get_stage_by_name('Repair Completed')
                         if stage_id:
                             ticket.write({
@@ -152,3 +175,28 @@ class StockPicking(models.Model):
                     'x_studio_stage_date': datetime.datetime.now(),
                 })
         return result
+
+    def action_dispatch_return(self):
+        """Open the return wizard preloaded for this picking (the first customer return).
+        The wizard creates the second return (virtual → customer). On create_returns()
+        the new picking is flagged x_studio_is_dispatch=True so that validating it
+        advances the ticket to 'Handed Over to Customer'."""
+        self.ensure_one()
+        ticket = self.x_studio_helpdesk_ticket_id
+        if not ticket:
+            raise UserError("This picking is not linked to a helpdesk ticket.")
+        return {
+            'name': 'Return Transfer',
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.return.picking',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'active_id': self.id,
+                'active_ids': [self.id],
+                'active_model': 'stock.picking',
+                'default_picking_id': self.id,
+                'default_ticket_id': ticket.id,
+                'default_x_studio_is_dispatch': True,
+            },
+        }
