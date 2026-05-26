@@ -6,20 +6,33 @@
         <field name="model">project.task</field>
         <field name="inherit_id" ref="project.view_task_form2"/>
         <field name="arch" type="xml">
-            <!-- helpdesk_ticket_id needed for Repair Diagnosis tab visibility -->
+            <!-- helpdesk_ticket_id + diagnosis_validated needed for tab visibility / gates -->
             <xpath expr="//sheet" position="inside">
                 <field name="helpdesk_ticket_id" invisible="1"/>
+                <field name="x_studio_diagnosis_validated" invisible="1"/>
+            </xpath>
+            <!-- Validate Diagnosis header button -->
+            <xpath expr="//header" position="inside">
+                <button name="action_validate_diagnosis"
+                        string="Validate Diagnosis"
+                        type="object"
+                        class="btn-primary"
+                        attrs="{'invisible': ['|',
+                                ('x_studio_diagnosis_validated', '=', True),
+                                ('helpdesk_ticket_id', '=', False)]}"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Repair Image" name="studio_page_VxXz6">
                     <group>
                         <group>
                             <field widget="image" name="x_studio_repair_image_01"
-                                   string="Repair Image 01" options='{"size": [0, 270]}'/>
+                                   string="Repair Image 01" options='{"size": [0, 270]}'
+                                   attrs="{'readonly': [('x_studio_diagnosis_validated', '=', True)]}"/>
                         </group>
                         <group>
                             <field widget="image" name="x_studio_repair_image_02"
-                                   string="Repair Image 02" options='{"size": [0, 270]}'/>
+                                   string="Repair Image 02" options='{"size": [0, 270]}'
+                                   attrs="{'readonly': [('x_studio_diagnosis_validated', '=', True)]}"/>
                         </group>
                     </group>
                 </page>
@@ -37,7 +50,8 @@
                 </page>
                 <page string="Repair Diagnosis" name="studio_page_M5qFQ"
                       attrs="{'invisible': [['helpdesk_ticket_id', '=', False]]}">
-                    <field name="x_studio_diagnosis_ids" force_save="True">
+                    <field name="x_studio_diagnosis_ids" force_save="True"
+                           attrs="{'readonly': [('x_studio_diagnosis_validated', '=', True)]}">
                         <tree editable="bottom">
                             <field name="x_studio_sequence" widget="handle"/>
                             <field name="x_name" invisible="1"/>
@@ -57,6 +71,21 @@
                         </tree>
                     </field>
                 </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Gate the Products smart icon behind diagnosis validation -->
+    <record id="view_task_form_products_gate" model="ir.ui.view">
+        <field name="name">project.task.form.inherit.products.gate</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_fsm_view_material']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', '|',
+                    ('partner_id', '=', False),
+                    ('allow_material', '=', False),
+                    ('x_studio_diagnosis_validated', '=', False)]}</attribute>
             </xpath>
         </field>
     </record>

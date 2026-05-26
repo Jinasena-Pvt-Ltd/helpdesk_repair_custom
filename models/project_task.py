@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class ProjectTask(models.Model):
@@ -24,6 +25,8 @@ class ProjectTask(models.Model):
     x_studio_related_information = fields.Binary(string='Related Information', attachment=True)
     x_studio_diagnosis_ids = fields.One2many(
         'x_task_diagnosis', 'x_studio_task_id', string='Diagnosis')
+    x_studio_diagnosis_validated = fields.Boolean(
+        string='Diagnosis Validated', copy=False, default=False)
 
     x_studio_so_fully_paid = fields.Boolean(
         string='SO Fully Paid', compute='_compute_x_studio_so_fully_paid', store=False)
@@ -46,6 +49,19 @@ class ProjectTask(models.Model):
                 lambda i: i.state == 'posted' and i.move_type == 'out_invoice')
             task.x_studio_so_fully_paid = bool(invoices) and all(
                 i.payment_state == 'paid' for i in invoices)
+
+    def action_validate_diagnosis(self):
+        self.ensure_one()
+        missing = []
+        if not (self.x_studio_repair_image_01 or self.x_studio_repair_image_02):
+            missing.append("- At least one Repair Image (slot 1 or slot 2)")
+        if not self.x_studio_diagnosis_ids:
+            missing.append("- At least one Repair Diagnosis line")
+        if missing:
+            raise UserError(
+                "Please add the following before validating diagnosis:\n"
+                + "\n".join(missing))
+        self.x_studio_diagnosis_validated = True
 
     @api.depends(
         'fsm_done', 'is_fsm', 'timer_start',
