@@ -173,7 +173,7 @@ if record.id:
    if dest_loc:
     opt_type = env['stock.picking.type'].search([('default_location_src_id', '=', record.x_studio_return_receipt_location.id),('code', '=', 'outgoing'),('company_id', '=', company.id)],limit=1)
     if opt_type:
-     prod_move = env['stock.picking'].create({'x_studio_created_from_help_ticket':record.id,'x_studio_helpdesk_ticket_id':record.id,'picking_type_id':opt_type.id,'location_id':source_loc,'location_dest_id':dest_loc.id,'company_id':company.id})
+     prod_move = env['stock.picking'].create({'x_studio_helpdesk_ticket_id':record.id,'picking_type_id':opt_type.id,'location_id':source_loc,'location_dest_id':dest_loc.id,'company_id':company.id})
 
      update_prod_move = env['stock.picking'].search([('id', '=', prod_move.id),('company_id', '=', company.id)],limit=1)
      if update_prod_move:
@@ -238,7 +238,7 @@ if record.id:
    if dest_loc:
     opt_type = env['stock.picking.type'].search([('default_location_src_id', '=', record.x_studio_return_receipt_location.id),('code', '=', 'outgoing'),('company_id', '=', company.id)],limit=1)
     if opt_type:
-     prod_move = env['stock.picking'].create({'x_studio_created_from_help_ticket':record.id,'x_studio_helpdesk_ticket_id':record.id,'picking_type_id':opt_type.id,'location_id':source_loc,'location_dest_id':dest_loc.id,'company_id':company.id})
+     prod_move = env['stock.picking'].create({'x_studio_helpdesk_ticket_id':record.id,'picking_type_id':opt_type.id,'location_id':source_loc,'location_dest_id':dest_loc.id,'company_id':company.id})
 
      update_prod_move = env['stock.picking'].search([('id', '=', prod_move.id),('company_id', '=', company.id)],limit=1)
      if update_prod_move:

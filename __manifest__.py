@@ -1,6 +1,6 @@
 {
     'name': 'Helpdesk Repair Custom',
-    'version': '15.0.1.15',
+    'version': '15.0.1.19',
     'summary': 'Helpdesk Repair & Warranty Ticket Management (Custom)',
     'category': 'Services/Helpdesk',
     'depends': [

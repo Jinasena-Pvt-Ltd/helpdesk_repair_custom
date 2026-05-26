@@ -67,16 +67,24 @@ class ProjectTask(models.Model):
         'fsm_done', 'is_fsm', 'timer_start',
         'display_enabled_conditions_count', 'display_satisfied_conditions_count',
         'sale_order_id', 'sale_order_id.picking_ids', 'sale_order_id.picking_ids.state',
+        'helpdesk_ticket_id',
     )
     def _compute_mark_as_done_buttons(self):
         super()._compute_mark_as_done_buttons()
         for task in self:
+            hide = False
             if task.sale_order_id:
                 so = task.sale_order_id
                 outgoing = so.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
                 if not outgoing or not all(p.state == 'done' for p in outgoing):
-                    task.update({
-                        'display_mark_as_done_primary': False,
-                        'display_mark_as_done_secondary': False,
-                    })
+                    hide = True
+            elif task.helpdesk_ticket_id:
+                # Repair task with no SO yet — hide until materials are added
+                # and the SO+deliveries gate above takes over.
+                hide = True
+            if hide:
+                task.update({
+                    'display_mark_as_done_primary': False,
+                    'display_mark_as_done_secondary': False,
+                })
 

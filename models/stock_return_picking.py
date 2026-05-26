@@ -46,14 +46,13 @@ class StockReturnPicking(models.TransientModel):
 
     def create_returns(self):
         result = super().create_returns()
-        if not self.x_studio_is_dispatch:
-            return result
         new_picking = self.env['stock.picking'].browse(result.get('res_id'))
-        if new_picking:
-            new_picking.x_studio_is_dispatch = True
-            ticket = self.ticket_id
-            if ticket:
-                new_picking.x_studio_helpdesk_ticket_id = ticket.id
+        ticket = self.ticket_id
+        if new_picking and ticket:
+            new_picking.x_studio_created_from_help_ticket = ticket.id
+            new_picking.x_studio_helpdesk_ticket_id = ticket.id
+            if self.x_studio_is_dispatch:
+                new_picking.x_studio_is_dispatch = True
                 task = self.env['project.task'].search(
                     [('helpdesk_ticket_id', '=', ticket.id)], limit=1)
                 if task:
