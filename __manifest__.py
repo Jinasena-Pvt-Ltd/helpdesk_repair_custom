@@ -1,6 +1,6 @@
 {
     'name': 'Helpdesk Repair Custom',
-    'version': '15.0.1.19',
+    'version': '15.0.1.22',
     'summary': 'Helpdesk Repair & Warranty Ticket Management (Custom)',
     'category': 'Services/Helpdesk',
     'depends': [
@@ -34,6 +34,7 @@
         'views/stock_return_picking_views.xml',
         'views/repair_order_views.xml',
         'views/project_task_views.xml',
+        'views/task_diagnosis_views.xml',
     ],
     'post_init_hook': 'post_init_hook',
     'installable': True,

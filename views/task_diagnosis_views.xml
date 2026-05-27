@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ═══════════════════════════════════════════
+         Conditions
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_conditions_tree" model="ir.ui.view">
+        <field name="name">x_conditions.tree</field>
+        <field name="model">x_conditions</field>
+        <field name="arch" type="xml">
+            <tree string="Conditions" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_conditions_form" model="ir.ui.view">
+        <field name="name">x_conditions.form</field>
+        <field name="model">x_conditions</field>
+        <field name="arch" type="xml">
+            <form string="Condition">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Condition"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_conditions_search" model="ir.ui.view">
+        <field name="name">x_conditions.search</field>
+        <field name="model">x_conditions</field>
+        <field name="arch" type="xml">
+            <search string="Conditions">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_conditions" model="ir.actions.act_window">
+        <field name="name">Conditions</field>
+        <field name="res_model">x_conditions</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Symptom Areas
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_symptom_areas_tree" model="ir.ui.view">
+        <field name="name">x_symptom_areas.tree</field>
+        <field name="model">x_symptom_areas</field>
+        <field name="arch" type="xml">
+            <tree string="Symptom Areas" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_symptom_areas_form" model="ir.ui.view">
+        <field name="name">x_symptom_areas.form</field>
+        <field name="model">x_symptom_areas</field>
+        <field name="arch" type="xml">
+            <form string="Symptom Area">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Symptom Area"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_symptom_areas_search" model="ir.ui.view">
+        <field name="name">x_symptom_areas.search</field>
+        <field name="model">x_symptom_areas</field>
+        <field name="arch" type="xml">
+            <search string="Symptom Areas">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_symptom_areas" model="ir.actions.act_window">
+        <field name="name">Symptom Areas</field>
+        <field name="res_model">x_symptom_areas</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Symptom Codes
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_symptom_codes_tree" model="ir.ui.view">
+        <field name="name">x_symptom_codes.tree</field>
+        <field name="model">x_symptom_codes</field>
+        <field name="arch" type="xml">
+            <tree string="Symptom Codes" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_symptom_area" options="{'no_create': True}"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_symptom_codes_form" model="ir.ui.view">
+        <field name="name">x_symptom_codes.form</field>
+        <field name="model">x_symptom_codes</field>
+        <field name="arch" type="xml">
+            <form string="Symptom Code">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Symptom Code"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_symptom_area" options="{'no_create': True}"/>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_symptom_codes_search" model="ir.ui.view">
+        <field name="name">x_symptom_codes.search</field>
+        <field name="model">x_symptom_codes</field>
+        <field name="arch" type="xml">
+            <search string="Symptom Codes">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Symptom Area" name="group_area"
+                            context="{'group_by': 'x_studio_symptom_area'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_symptom_codes" model="ir.actions.act_window">
+        <field name="name">Symptom Codes</field>
+        <field name="res_model">x_symptom_codes</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Diagnosis Areas
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_diagnosis_areas_tree" model="ir.ui.view">
+        <field name="name">x_diagnosis_areas.tree</field>
+        <field name="model">x_diagnosis_areas</field>
+        <field name="arch" type="xml">
+            <tree string="Diagnosis Areas" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_diagnosis_areas_form" model="ir.ui.view">
+        <field name="name">x_diagnosis_areas.form</field>
+        <field name="model">x_diagnosis_areas</field>
+        <field name="arch" type="xml">
+            <form string="Diagnosis Area">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Diagnosis Area"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_diagnosis_areas_search" model="ir.ui.view">
+        <field name="name">x_diagnosis_areas.search</field>
+        <field name="model">x_diagnosis_areas</field>
+        <field name="arch" type="xml">
+            <search string="Diagnosis Areas">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_diagnosis_areas" model="ir.actions.act_window">
+        <field name="name">Diagnosis Areas</field>
+        <field name="res_model">x_diagnosis_areas</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Diagnosis Codes
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_diagnosis_codes_tree" model="ir.ui.view">
+        <field name="name">x_diagnosis_codes.tree</field>
+        <field name="model">x_diagnosis_codes</field>
+        <field name="arch" type="xml">
+            <tree string="Diagnosis Codes" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_diagnosis_area_1" options="{'no_create': True}"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_diagnosis_codes_form" model="ir.ui.view">
+        <field name="name">x_diagnosis_codes.form</field>
+        <field name="model">x_diagnosis_codes</field>
+        <field name="arch" type="xml">
+            <form string="Diagnosis Code">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Diagnosis Code"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_diagnosis_area_1" options="{'no_create': True}"/>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_diagnosis_codes_search" model="ir.ui.view">
+        <field name="name">x_diagnosis_codes.search</field>
+        <field name="model">x_diagnosis_codes</field>
+        <field name="arch" type="xml">
+            <search string="Diagnosis Codes">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Diagnosis Area" name="group_area"
+                            context="{'group_by': 'x_studio_diagnosis_area_1'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_diagnosis_codes" model="ir.actions.act_window">
+        <field name="name">Diagnosis Codes</field>
+        <field name="res_model">x_diagnosis_codes</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Repair Reason
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_repair_reason_tree" model="ir.ui.view">
+        <field name="name">x_repair_reason.tree</field>
+        <field name="model">x_repair_reason</field>
+        <field name="arch" type="xml">
+            <tree string="Repair Reasons" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_color" widget="color_picker"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_repair_reason_form" model="ir.ui.view">
+        <field name="name">x_repair_reason.form</field>
+        <field name="model">x_repair_reason</field>
+        <field name="arch" type="xml">
+            <form string="Repair Reason">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Repair Reason"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_color" widget="color_picker"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_repair_reason_search" model="ir.ui.view">
+        <field name="name">x_repair_reason.search</field>
+        <field name="model">x_repair_reason</field>
+        <field name="arch" type="xml">
+            <search string="Repair Reasons">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_repair_reason" model="ir.actions.act_window">
+        <field name="name">Repair Reason</field>
+        <field name="res_model">x_repair_reason</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Repair Sub Reason
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_repair_sub_reason_tree" model="ir.ui.view">
+        <field name="name">x_repair_sub_reason.tree</field>
+        <field name="model">x_repair_sub_reason</field>
+        <field name="arch" type="xml">
+            <tree string="Repair Sub Reasons" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_reason_code" options="{'no_create': True}"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_repair_sub_reason_form" model="ir.ui.view">
+        <field name="name">x_repair_sub_reason.form</field>
+        <field name="model">x_repair_sub_reason</field>
+        <field name="arch" type="xml">
+            <form string="Repair Sub Reason">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Sub Reason Code"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_reason_code" options="{'no_create': True}"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_repair_sub_reason_search" model="ir.ui.view">
+        <field name="name">x_repair_sub_reason.search</field>
+        <field name="model">x_repair_sub_reason</field>
+        <field name="arch" type="xml">
+            <search string="Repair Sub Reasons">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Reason Code" name="group_reason"
+                            context="{'group_by': 'x_studio_reason_code'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_repair_sub_reason" model="ir.actions.act_window">
+        <field name="name">Repair Sub Reason</field>
+        <field name="res_model">x_repair_sub_reason</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Resolutions
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_resolutions_tree" model="ir.ui.view">
+        <field name="name">x_resolutions.tree</field>
+        <field name="model">x_resolutions</field>
+        <field name="arch" type="xml">
+            <tree string="Resolutions" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_resolutions_form" model="ir.ui.view">
+        <field name="name">x_resolutions.form</field>
+        <field name="model">x_resolutions</field>
+        <field name="arch" type="xml">
+            <form string="Resolution">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Resolution"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_resolutions_search" model="ir.ui.view">
+        <field name="name">x_resolutions.search</field>
+        <field name="model">x_resolutions</field>
+        <field name="arch" type="xml">
+            <search string="Resolutions">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_resolutions" model="ir.actions.act_window">
+        <field name="name">Resolutions</field>
+        <field name="res_model">x_resolutions</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Repair Stages
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_repair_stages_tree" model="ir.ui.view">
+        <field name="name">x_repair_stages.tree</field>
+        <field name="model">x_repair_stages</field>
+        <field name="arch" type="xml">
+            <tree string="Repair Stages" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_studio_description"/>
+                <field name="x_studio_company_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_repair_stages_form" model="ir.ui.view">
+        <field name="name">x_repair_stages.form</field>
+        <field name="model">x_repair_stages</field>
+        <field name="arch" type="xml">
+            <form string="Repair Stage">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Repair Stage"/></h1>
+                    </div>
+                    <group>
+                        <field name="x_studio_description"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_studio_company_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_repair_stages_search" model="ir.ui.view">
+        <field name="name">x_repair_stages.search</field>
+        <field name="model">x_repair_stages</field>
+        <field name="arch" type="xml">
+            <search string="Repair Stages">
+                <field name="x_name"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_repair_stages" model="ir.actions.act_window">
+        <field name="name">Repair Stages</field>
+        <field name="res_model">x_repair_stages</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Task Diagnosis
+    ═══════════════════════════════════════════ -->
+
+    <record id="view_task_diagnosis_tree" model="ir.ui.view">
+        <field name="name">x_task_diagnosis.tree</field>
+        <field name="model">x_task_diagnosis</field>
+        <field name="arch" type="xml">
+            <tree string="Task Diagnosis" editable="bottom">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_studio_task_id"/>
+                <field name="x_studio_diagnosis_area"/>
+                <field name="x_studio_diagnosis_code"
+                       domain="[['x_studio_diagnosis_area_1', '=', x_studio_diagnosis_area]]"/>
+                <field name="x_studio_reason"/>
+                <field name="x_studio_sub_reason"
+                       domain="[['x_studio_reason_code', '=', x_studio_reason]]"/>
+                <field name="x_studio_resolution"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_task_diagnosis_form" model="ir.ui.view">
+        <field name="name">x_task_diagnosis.form</field>
+        <field name="model">x_task_diagnosis</field>
+        <field name="arch" type="xml">
+            <form string="Task Diagnosis">
+                <sheet>
+                    <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
+                            attrs="{'invisible': [('x_active', '=', True)]}"/>
+                    <field name="x_active" invisible="1"/>
+                    <div class="oe_title">
+                        <label for="x_name"/>
+                        <h1><field name="x_name" placeholder="Name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="x_studio_task_id"/>
+                            <field name="x_studio_condition"/>
+                            <field name="x_studio_diagnosis_area"/>
+                            <field name="x_studio_diagnosis_code"
+                                   domain="[['x_studio_diagnosis_area_1', '=', x_studio_diagnosis_area]]"/>
+                            <field name="x_studio_symptom_area"/>
+                            <field name="x_studio_symptom_code"/>
+                        </group>
+                        <group>
+                            <field name="x_studio_reason"/>
+                            <field name="x_studio_sub_reason"
+                                   domain="[['x_studio_reason_code', '=', x_studio_reason]]"/>
+                            <field name="x_studio_resolution"/>
+                            <field name="x_studio_repair_stage"/>
+                            <field name="x_studio_description"/>
+                            <field name="x_studio_sequence"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_task_diagnosis_search" model="ir.ui.view">
+        <field name="name">x_task_diagnosis.search</field>
+        <field name="model">x_task_diagnosis</field>
+        <field name="arch" type="xml">
+            <search string="Task Diagnosis">
+                <field name="x_name"/>
+                <field name="x_studio_task_id"/>
+                <filter string="Archived" name="inactive" domain="[('x_active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Task" name="group_task"
+                            context="{'group_by': 'x_studio_task_id'}"/>
+                    <filter string="Diagnosis Area" name="group_area"
+                            context="{'group_by': 'x_studio_diagnosis_area'}"/>
+                    <filter string="Reason" name="group_reason"
+                            context="{'group_by': 'x_studio_reason'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_task_diagnosis" model="ir.actions.act_window">
+        <field name="name">Task Diagnosis</field>
+        <field name="res_model">x_task_diagnosis</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ═══════════════════════════════════════════
+         Menus — sequences match production
+    ═══════════════════════════════════════════ -->
+
+    <menuitem id="menu_repair_diagnosis"
+              name="Repair Diagnosis"
+              parent="helpdesk.menu_helpdesk_root"
+              sequence="101"/>
+
+    <menuitem id="menu_conditions"
+              name="Conditions"
+              parent="menu_repair_diagnosis"
+              action="action_conditions"
+              sequence="0"/>
+
+    <menuitem id="menu_symptom_areas"
+              name="Symptom Areas"
+              parent="menu_repair_diagnosis"
+              action="action_symptom_areas"
+              sequence="1"/>
+
+    <menuitem id="menu_symptom_codes"
+              name="Symptom Codes"
+              parent="menu_repair_diagnosis"
+              action="action_symptom_codes"
+              sequence="2"/>
+
+    <menuitem id="menu_diagnosis_areas"
+              name="Diagnosis Areas"
+              parent="menu_repair_diagnosis"
+              action="action_diagnosis_areas"
+              sequence="3"/>
+
+    <menuitem id="menu_diagnosis_codes"
+              name="Diagnosis Codes"
+              parent="menu_repair_diagnosis"
+              action="action_diagnosis_codes"
+              sequence="4"/>
+
+    <menuitem id="menu_repair_reason"
+              name="Repair Reason"
+              parent="menu_repair_diagnosis"
+              action="action_repair_reason"
+              sequence="5"/>
+
+    <!-- Repair Reason - Customer reuses the existing act_window from repair_reason_custom_views.xml -->
+    <menuitem id="menu_repair_reason_customer"
+              name="Repair Reason - Customer"
+              parent="menu_repair_diagnosis"
+              action="action_repair_reason_custom"
+              sequence="6"/>
+
+    <menuitem id="menu_repair_sub_reason"
+              name="Repair Sub Reason"
+              parent="menu_repair_diagnosis"
+              action="action_repair_sub_reason"
+              sequence="7"/>
+
+    <menuitem id="menu_resolutions"
+              name="Resolutions"
+              parent="menu_repair_diagnosis"
+              action="action_resolutions"
+              sequence="8"/>
+
+    <menuitem id="menu_repair_stages"
+              name="Repair Stages"
+              parent="menu_repair_diagnosis"
+              action="action_repair_stages"
+              sequence="9"/>
+
+    <menuitem id="menu_task_diagnosis"
+              name="Task Diagnosis"
+              parent="menu_repair_diagnosis"
+              action="action_task_diagnosis"
+              sequence="10"/>
+
+</odoo>

@@ -55,18 +55,27 @@
                         <tree editable="bottom">
                             <field name="x_studio_sequence" widget="handle"/>
                             <field name="x_name" invisible="1"/>
-                            <field name="x_studio_condition" optional="show" invisible="1"/>
-                            <field name="x_studio_symptom_area" optional="show" invisible="1"/>
-                            <field name="x_studio_symptom_code" optional="show" invisible="1"/>
+                            <field name="x_studio_condition" optional="show" invisible="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_symptom_area" optional="show" invisible="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_symptom_code" optional="show" invisible="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                             <field name="x_studio_description" optional="show"/>
-                            <field name="x_studio_diagnosis_area" optional="show" required="1"/>
+                            <field name="x_studio_diagnosis_area" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                             <field name="x_studio_diagnosis_code" optional="show" required="1"
-                                   domain="[['x_studio_diagnosis_area_1', '=', x_studio_diagnosis_area]]"/>
-                            <field name="x_studio_reason" optional="show" required="1"/>
+                                   domain="[['x_studio_diagnosis_area_1', '=', x_studio_diagnosis_area]]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_reason" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                             <field name="x_studio_sub_reason" optional="show" required="1"
-                                   domain="[['x_studio_reason_code', '=', x_studio_reason]]"/>
-                            <field name="x_studio_resolution" optional="show" required="1"/>
-                            <field name="x_studio_repair_stage" optional="show" required="1"/>
+                                   domain="[['x_studio_reason_code', '=', x_studio_reason]]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_resolution" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_repair_stage" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
                             <field name="x_studio_task_id" string="Task" optional="show" invisible="1"/>
                         </tree>
                     </field>
