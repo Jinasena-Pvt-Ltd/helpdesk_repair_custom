@@ -7,13 +7,53 @@ from odoo.exceptions import UserError
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
+    x_studio_quotation_type = fields.Selection([
+        ('Project', 'Project'),
+        ('Sales', 'Sales'),
+        ('Repair', 'Repair'),
+    ], string='Quotation Type')
     x_studio_order_payment_method = fields.Selection([
         ('Cash', 'Cash'),
         ('Credit', 'Credit'),
     ], string='Order Payment Type')
     x_studio_rug_approved = fields.Boolean(string='RUG Approved')
     x_studio_rug_rejected = fields.Boolean(string='RUG Rejected')
+    x_studio_rug_confirmed = fields.Boolean(
+        related='task_id.helpdesk_ticket_id.x_studio_rug_confirmed',
+        store=True, string='RUG Confirmed')
+    x_studio_rug_request_sent = fields.Boolean(string='RUG Request Sent')
+    x_studio_reject_reason = fields.Text(string='Reject Reason')
     x_studio_re_estimate_count = fields.Integer(string='Re-estimate Count')
+
+    def action_request_rug_approval(self):
+        for order in self:
+            order.x_studio_rug_request_sent = True
+            ticket = order.task_id.helpdesk_ticket_id if order.task_id else False
+            if ticket:
+                ticket.write({'x_studio_rug_request_sent': True})
+            activity_type = self.env['mail.activity.type'].search(
+                [('name', '=', 'To Do')], limit=1)
+            if activity_type and order.user_id:
+                order.activity_schedule(
+                    activity_type_id=activity_type.id,
+                    summary='Approve RUG Repair',
+                    user_id=order.user_id.id,
+                )
+
+    def action_approve_rug(self):
+        for order in self:
+            order.x_studio_rug_approved = True
+            ticket = order.task_id.helpdesk_ticket_id if order.task_id else False
+            if ticket:
+                ticket.write({'x_studio_rug_approved': True})
+
+    def action_reject_rug(self):
+        for order in self:
+            order.x_studio_rug_rejected = True
+            order.x_studio_rug_approved = False
+            ticket = order.task_id.helpdesk_ticket_id if order.task_id else False
+            if ticket:
+                ticket.write({'x_studio_rug_approved': False})
 
     def _ticket_for_order(self, order):
         """Return (task, ticket) pairs linked to this order via FSM tasks."""

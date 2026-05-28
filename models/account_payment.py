@@ -5,6 +5,29 @@ class AccountPayment(models.Model):
     _inherit = 'account.payment'
 
     x_studio_sales_order = fields.Many2one('sale.order', string='Sales Order')
+    x_studio_rug_confirmed = fields.Boolean(
+        related='move_id.x_studio_rug_confirmed', store=False,
+        string='RUG Confirmed')
+    x_studio_rug_acc_updated = fields.Boolean(
+        related='move_id.x_studio_rug_acc_updated', store=False,
+        string='RUG Account Updated')
+    x_studio_rug_rejected = fields.Boolean(
+        related='move_id.x_studio_rug_rejected', store=False,
+        string='RUG Rejected')
+
+
+class AccountBankStatementLine(models.Model):
+    _inherit = 'account.bank.statement.line'
+
+    x_studio_rug_confirmed = fields.Boolean(
+        related='move_id.x_studio_rug_confirmed', store=False,
+        string='RUG Confirmed')
+    x_studio_rug_acc_updated = fields.Boolean(
+        related='move_id.x_studio_rug_acc_updated', store=False,
+        string='RUG Account Updated')
+    x_studio_rug_rejected = fields.Boolean(
+        related='move_id.x_studio_rug_rejected', store=False,
+        string='RUG Rejected')
 
 
 class AccountPaymentRegister(models.TransientModel):

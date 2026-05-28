@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Sale Order form: RUG approval buttons + status fields -->
+    <record id="sale_order_form_rug" model="ir.ui.view">
+        <field name="name">sale.order.form.rug</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- RUG approval buttons in header -->
+            <xpath expr="//button[@name='action_confirm']" position="before">
+                <button name="action_request_rug_approval"
+                        type="object"
+                        string="Request RUG Approval"
+                        class="btn-primary"
+                        attrs="{'invisible': ['|','|','|',
+                            ('x_studio_rug_confirmed', '!=', True),
+                            ('x_studio_rug_approved', '=', True),
+                            ('x_studio_rug_rejected', '=', True),
+                            ('x_studio_rug_request_sent', '=', True)]}"/>
+                <button name="action_approve_rug"
+                        type="object"
+                        string="Approve RUG"
+                        class="btn-primary"
+                        attrs="{'invisible': ['|','|','|',
+                            ('x_studio_rug_confirmed', '!=', True),
+                            ('x_studio_rug_approved', '=', True),
+                            ('x_studio_rug_rejected', '=', True),
+                            ('x_studio_rug_request_sent', '=', False)]}"/>
+                <button name="action_reject_rug"
+                        type="object"
+                        string="Reject RUG"
+                        class="btn-danger"
+                        attrs="{'invisible': ['|','|','|',
+                            ('x_studio_rug_confirmed', '!=', True),
+                            ('x_studio_rug_approved', '=', True),
+                            ('x_studio_rug_rejected', '=', True),
+                            ('x_studio_rug_request_sent', '=', False)]}"/>
+            </xpath>
+            <!-- RUG status fields below partner -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="x_studio_rug_confirmed"
+                       string="RUG Confirmed"
+                       attrs="{'invisible': [('x_studio_rug_confirmed', '!=', True)]}"/>
+                <field name="x_studio_rug_approved"
+                       string="RUG Approved"
+                       readonly="1"
+                       force_save="1"
+                       attrs="{'invisible': [('x_studio_rug_approved', '!=', True)]}"/>
+                <field name="x_studio_rug_rejected"
+                       string="RUG Rejected"
+                       readonly="1"
+                       force_save="1"
+                       attrs="{'invisible': [('x_studio_rug_rejected', '!=', True)]}"/>
+                <field name="x_studio_reject_reason"
+                       string="Reject Reason"
+                       attrs="{'invisible': [('x_studio_rug_confirmed', '!=', True)]}"/>
+                <field name="x_studio_rug_request_sent" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Sale Order tree: optional RUG Confirmed column -->
+    <record id="sale_order_tree_rug" model="ir.ui.view">
+        <field name="name">sale.order.tree.rug</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="x_studio_rug_confirmed"
+                       optional="show"
+                       string="RUG Confirmed"
+                       invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

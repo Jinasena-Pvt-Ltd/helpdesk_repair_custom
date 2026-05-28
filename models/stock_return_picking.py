@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 
 class StockReturnPicking(models.TransientModel):
@@ -12,6 +13,26 @@ class StockReturnPicking(models.TransientModel):
     x_studio_suggested_location_id_1 = fields.Many2one(
         'stock.location', string='Suggested Return Location', ondelete='set null')
     x_studio_is_dispatch = fields.Boolean(string='Is Dispatch Return')
+
+    @api.onchange('location_id')
+    def _onchange_location_id_validate_rug(self):
+        """Raise if a RUG/serial return is being sent to the wrong location."""
+        if not self.ticket_id:
+            return
+        if not (self.x_studio_repair_rug or self.x_studio_repair_normal_with_serial_no):
+            return
+        if self.x_studio_is_dispatch:
+            return
+        company_id = self.env.context.get(
+            'allowed_company_ids', [self.env.user.company_id.id])[0]
+        suggested = (
+            self.x_studio_suggested_location_id
+            if company_id == 1
+            else self.x_studio_suggested_location_id_1
+        )
+        if suggested and self.location_id and self.location_id != suggested:
+            raise UserError(
+                'Return Location should be equal to Suggested Return Location.')
 
     @api.onchange('picking_id')
     def _onchange_picking_id_ticket_location(self):
