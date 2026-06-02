@@ -36,6 +36,17 @@
                             ('x_studio_rug_approved', '=', True),
                             ('x_studio_rug_rejected', '=', True),
                             ('x_studio_rug_request_sent', '=', False)]}"/>
+                <button name="action_request_re_estimate"
+                        type="object"
+                        string="Request Re-estimate"
+                        class="btn-warning"
+                        attrs="{'invisible': ['|', ('state', '!=', 'done'), ('x_studio_is_repair_order', '=', False)]}"/>
+                <button name="action_unlock_repair"
+                        type="object"
+                        string="Unlock"
+                        class="btn-secondary"
+                        groups="sales_team.group_sale_manager,helpdesk.group_helpdesk_manager"
+                        attrs="{'invisible': ['|', ('state', '!=', 'done'), ('x_studio_is_repair_order', '=', False)]}"/>
             </xpath>
             <!-- RUG status fields below partner -->
             <xpath expr="//field[@name='partner_id']" position="after">
@@ -56,6 +67,7 @@
                        string="Reject Reason"
                        attrs="{'invisible': [('x_studio_rug_confirmed', '!=', True)]}"/>
                 <field name="x_studio_rug_request_sent" invisible="1"/>
+                <field name="x_studio_is_repair_order" invisible="1"/>
             </xpath>
         </field>
     </record>

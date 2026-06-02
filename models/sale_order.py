@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from odoo import fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -24,6 +24,18 @@ class SaleOrder(models.Model):
     x_studio_rug_request_sent = fields.Boolean(string='RUG Request Sent')
     x_studio_reject_reason = fields.Text(string='Reject Reason')
     x_studio_re_estimate_count = fields.Integer(string='Re-estimate Count')
+    x_studio_is_repair_order = fields.Boolean(
+        string='Is Repair Order',
+        compute='_compute_x_studio_is_repair_order',
+        store=True,
+    )
+
+    @api.depends('task_id', 'task_id.helpdesk_ticket_id')
+    def _compute_x_studio_is_repair_order(self):
+        for order in self:
+            order.x_studio_is_repair_order = bool(
+                order.task_id and order.task_id.helpdesk_ticket_id
+            )
 
     def action_request_rug_approval(self):
         for order in self:
@@ -78,7 +90,33 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         for order in self:
             order._check_resupply_warehouse_stock()
-        return super().action_confirm()
+        res = super().action_confirm()
+        repair_orders = self.filtered('x_studio_is_repair_order')
+        if repair_orders:
+            repair_orders.action_done()
+        return res
+
+    def action_request_re_estimate(self):
+        sales_mgr = self.env.ref('sales_team.group_sale_manager')
+        hd_mgr = self.env.ref('helpdesk.group_helpdesk_manager')
+        manager_partners = (sales_mgr.users | hd_mgr.users).filtered('active').mapped('partner_id')
+        for order in self:
+            order.x_studio_re_estimate_count += 1
+            order.message_post(
+                body=_("Re-estimate requested by %s. Manager: please review and click Unlock to allow edits.") % self.env.user.name,
+                subject=_("Re-estimate Requested"),
+                partner_ids=manager_partners.ids,
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+            )
+
+    def action_unlock_repair(self):
+        self.action_unlock()
+        for order in self:
+            order.message_post(
+                body=_("SO unlocked by %s.") % self.env.user.name,
+                subject=_("SO Unlocked"),
+            )
 
     def _check_resupply_warehouse_stock(self):
         self.ensure_one()

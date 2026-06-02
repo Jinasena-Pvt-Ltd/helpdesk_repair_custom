@@ -1,11 +1,19 @@
-from odoo import fields, models
+from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    x_studio_sale_id = fields.Many2one('sale.order', string='Sale Order')
+    x_studio_sale_id = fields.Many2one(
+        'sale.order', string='Sale Order',
+        compute='_compute_x_studio_sale_id', store=True, readonly=False)
+
+    @api.depends('invoice_line_ids.sale_line_ids.order_id')
+    def _compute_x_studio_sale_id(self):
+        for move in self:
+            if not move.x_studio_sale_id:
+                move.x_studio_sale_id = move.invoice_line_ids.sale_line_ids.order_id[:1]
     x_studio_rug_confirmed = fields.Boolean(
         related='x_studio_sale_id.x_studio_rug_confirmed', store=True,
         string='RUG Confirmed')

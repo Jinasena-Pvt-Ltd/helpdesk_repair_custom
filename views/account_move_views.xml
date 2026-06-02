@@ -32,7 +32,7 @@
             </xpath>
             <!-- Block "Register Payment" on RUG invoices until account is updated -->
             <xpath expr="//button[@name='action_register_payment']" position="attributes">
-                <attribute name="attrs">{'invisible': ['|', '|', '|', '|',
+                <attribute name="attrs">{'invisible': ['|', '|', '|',
                     ('state', '!=', 'posted'),
                     ('payment_state', 'not in', ('not_paid', 'partial')),
                     ('move_type', 'not in', ('out_invoice', 'out_refund',
