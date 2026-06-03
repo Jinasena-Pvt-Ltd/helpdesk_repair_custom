@@ -50,5 +50,6 @@ class AccountMove(models.Model):
                 line.write({'account_id': rug_account_rec.x_studio_rug_account.id})
             if was_posted:
                 self.action_post()
+                self._compute_payment_state()
 
         self.write({'x_studio_rug_acc_updated': True})
