@@ -66,6 +66,9 @@ class SaleOrder(models.Model):
             ticket = order.task_id.helpdesk_ticket_id if order.task_id else False
             if ticket:
                 ticket.write({'x_studio_rug_approved': False})
+            for line in order.order_line:
+                if line.x_studio_price_unit_original:
+                    line.price_unit = line.x_studio_price_unit_original
 
     def _ticket_for_order(self, order):
         """Return (task, ticket) pairs linked to this order via FSM tasks."""
