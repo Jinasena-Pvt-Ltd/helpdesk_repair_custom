@@ -143,31 +143,7 @@ record['x_studio_company_id'] = company.id
         <field name="active">True</field>
     </record>
 
-    <!-- ── RUG: swap SO line price to cost on SO creation ── -->
-
-    <record id="act_automation_rug_so_price_swap" model="ir.actions.server">
-        <field name="name">RR - Auto Swap Price to Cost on RUG SO Creation</field>
-        <field name="model_id" ref="sale.model_sale_order"/>
-        <field name="state">code</field>
-        <field name="code"><![CDATA[
-if record.x_studio_rug_confirmed == True and record.x_studio_is_repair_order == True:
-    for line in record.order_line:
-        if not line.x_studio_price_unit_original:
-            original_price = line.price_unit
-            cost_price = line.product_id.standard_price
-            line.write({
-                'price_unit': cost_price,
-                'x_studio_price_unit_original': original_price,
-            })
-]]></field>
-    </record>
-
-    <record id="automation_rug_so_price_swap" model="base.automation">
-        <field name="action_server_id" ref="act_automation_rug_so_price_swap"/>
-        <field name="trigger">on_create</field>
-        <field name="filter_domain">[["x_studio_rug_confirmed","=",True],["x_studio_is_repair_order","=",True]]</field>
-        <field name="active">True</field>
-    </record>
+    <!-- ── RUG: price swap to cost is handled in sale_order.py _apply_rug_price_swap / write() ── -->
 
     <!-- ── RUG: validate invoice (set payment_state=in_payment) on write ── -->
 

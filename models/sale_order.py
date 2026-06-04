@@ -37,6 +37,23 @@ class SaleOrder(models.Model):
                 order.task_id and order.task_id.helpdesk_ticket_id
             )
 
+    def _apply_rug_price_swap(self):
+        for order in self:
+            if not (order.x_studio_rug_confirmed and order.x_studio_is_repair_order):
+                continue
+            for line in order.order_line:
+                if not line.x_studio_price_unit_original:
+                    line.write({
+                        'price_unit': line.product_id.standard_price,
+                        'x_studio_price_unit_original': line.price_unit,
+                    })
+
+    def write(self, vals):
+        result = super().write(vals)
+        if 'task_id' in vals:
+            self._apply_rug_price_swap()
+        return result
+
     def action_request_rug_approval(self):
         for order in self:
             order.x_studio_rug_request_sent = True
