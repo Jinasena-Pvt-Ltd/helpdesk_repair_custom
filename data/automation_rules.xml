@@ -150,7 +150,7 @@ record['x_studio_company_id'] = company.id
         <field name="model_id" ref="sale.model_sale_order"/>
         <field name="state">code</field>
         <field name="code"><![CDATA[
-if record.x_studio_rug_confirmed == True and record.x_studio_quotation_type == 'Repair':
+if record.x_studio_rug_confirmed == True and record.x_studio_is_repair_order == True:
     for line in record.order_line:
         if not line.x_studio_price_unit_original:
             original_price = line.price_unit
@@ -165,7 +165,7 @@ if record.x_studio_rug_confirmed == True and record.x_studio_quotation_type == '
     <record id="automation_rug_so_price_swap" model="base.automation">
         <field name="action_server_id" ref="act_automation_rug_so_price_swap"/>
         <field name="trigger">on_create</field>
-        <field name="filter_domain">[["x_studio_rug_confirmed","=",True],["x_studio_quotation_type","=","Repair"]]</field>
+        <field name="filter_domain">[["x_studio_rug_confirmed","=",True],["x_studio_is_repair_order","=",True]]</field>
         <field name="active">True</field>
     </record>
 
