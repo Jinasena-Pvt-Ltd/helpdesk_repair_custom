@@ -12,3 +12,17 @@ When going through RUG flow. if the re estimate button is clicked on an approved
 - Edit: /opt/odoo15/custom-addons/helpdesk_repair_custom/models/sale_order_line.py
 - Edit: /opt/odoo15/custom-addons/helpdesk_repair_custom/__manifest__.py
 
+
+---
+
+## Change — 2026-06-05T06:54:38Z
+
+**Prompt:**
+```
+When the RUG approval is rejected it should show and use only the selling price
+```
+
+**Files touched:**
+- Edit: /opt/odoo15/custom-addons/helpdesk_repair_custom/models/sale_order_line.py
+- Edit: /opt/odoo15/custom-addons/helpdesk_repair_custom/__manifest__.py
+

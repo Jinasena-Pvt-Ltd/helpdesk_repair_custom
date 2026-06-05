@@ -18,7 +18,8 @@ class SaleOrderLine(models.Model):
         if not self.product_id:
             return
         order = self.order_id
-        if not (order.x_studio_rug_confirmed and order.x_studio_is_repair_order):
+        if not (order.x_studio_rug_confirmed and order.x_studio_is_repair_order) \
+                or order.x_studio_rug_rejected:
             return
         if self.x_studio_price_unit_original:
             return  # already swapped — don't overwrite
@@ -33,7 +34,8 @@ class SaleOrderLine(models.Model):
             if not order_id or not product_id or vals.get('x_studio_price_unit_original'):
                 continue
             order = self.env['sale.order'].browse(order_id)
-            if order.x_studio_rug_confirmed and order.x_studio_is_repair_order:
+            if order.x_studio_rug_confirmed and order.x_studio_is_repair_order \
+                    and not order.x_studio_rug_rejected:
                 product = self.env['product.product'].browse(product_id)
                 vals['x_studio_price_unit_original'] = vals.get('price_unit', product.lst_price)
                 vals['price_unit'] = product.standard_price
