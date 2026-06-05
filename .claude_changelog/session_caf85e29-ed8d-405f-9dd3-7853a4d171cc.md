@@ -26,3 +26,16 @@ When the RUG approval is rejected it should show and use only the selling price
 - Edit: /opt/odoo15/custom-addons/helpdesk_repair_custom/models/sale_order_line.py
 - Edit: /opt/odoo15/custom-addons/helpdesk_repair_custom/__manifest__.py
 
+
+---
+
+## Change — 2026-06-05T11:01:47Z
+
+**Prompt:**
+```
+/compress
+```
+
+**Files touched:**
+- Write: /opt/odoo15/custom-addons/helpdesk_repair_custom/CC-Session-Logs/05-06-2026-11_02-rug-onchange-price-and-reject-guard.md
+
