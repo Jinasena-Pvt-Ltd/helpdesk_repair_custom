@@ -125,8 +125,20 @@ class ProjectTask(models.Model):
                 so = task.sale_order_id
                 if so.state != 'cancel':
                     outgoing = so.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
-                    if not outgoing or not all(p.state == 'done' for p in outgoing):
-                        hide = True
+                    if outgoing:
+                        if not all(p.state == 'done' for p in outgoing):
+                            hide = True
+                    else:
+                        # industry_fsm_stock sets qty_delivered directly without
+                        # creating a SO-linked picking; treat as delivered when
+                        # nothing remains to ship.
+                        all_delivered = all(
+                            line.qty_delivered >= line.product_uom_qty
+                            for line in so.order_line
+                            if line.product_uom_qty > 0
+                        )
+                        if not all_delivered:
+                            hide = True
             elif task.helpdesk_ticket_id:
                 hide = True
             if hide:
