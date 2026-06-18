@@ -377,6 +377,15 @@ class HelpdeskTicket(models.Model):
                             [('sale_id', '=', so.id),
                              ('state', 'not in', ['done', 'cancel'])], limit=1)
                         task_status = not bool(delivery)
+                    else:
+                        # industry_fsm_stock sets qty_delivered directly on the
+                        # sale line without creating a SO-linked picking; treat
+                        # the SO as fully delivered when nothing remains to ship.
+                        task_status = all(
+                            line.qty_delivered >= line.product_uom_qty
+                            for line in so.order_line
+                            if line.product_uom_qty > 0
+                        )
             if task_status and not rec.x_studio_repair_complete_stage_updated:
                 stage_id = rec._get_stage_by_name('Repair Completed')
                 if stage_id:
