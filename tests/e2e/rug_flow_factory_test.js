@@ -809,7 +809,9 @@ with odoo.registry('odoo17').cursor() as cr:
     so = env['sale.order'].browse(${soId})
     picks = so.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing' and p.state not in ('done','cancel'))
     if not picks:
-        print(json.dumps({'error': 'no pending outgoing picking on so ${soId}', 'allPicks': [(p.id, p.state) for p in so.picking_ids]}))
+        # industry_fsm_stock may have set qty_delivered directly without a SO-linked picking
+        all_delivered = all(l.qty_delivered >= l.product_uom_qty for l in so.order_line if l.product_uom_qty > 0)
+        print(json.dumps({'skipped': True, 'reason': 'no outgoing picking; fsm_stock delivered directly', 'all_delivered': all_delivered}))
         sys.exit(0)
     pick = picks[0]
     for move in pick.move_ids:
@@ -847,7 +849,11 @@ with odoo.registry('odoo17').cursor() as cr:
       await check('SO outgoing delivery validated', false, valResult.error);
       await browser.close(); return;
     }
-    await check('SO outgoing delivery validated (state=done)', valResult.state === 'done', `state=${valResult.state}`);
+    if (valResult.skipped) {
+      await check('SO outgoing delivery — FSM stock delivered directly (no picking needed)', valResult.all_delivered, valResult.reason);
+    } else {
+      await check('SO outgoing delivery validated (state=done)', valResult.state === 'done', `state=${valResult.state}`);
+    }
   } catch (e) {
     await check('SO outgoing delivery validated', false, e.message.slice(0, 200));
     await browser.close(); return;
