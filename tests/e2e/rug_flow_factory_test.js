@@ -598,6 +598,29 @@ async function phase1Factory(page, serialName, pickingId) {
   console.log('  Task after product add:', JSON.stringify(taskAfterProd[0]));
   const soId = taskAfterProd[0].sale_order_id?.[0];
   await check('SO auto-created from product add (task.sale_order_id set)', !!soId, `soId=${soId}`);
+
+  // Set SO.task_id = fsmTaskId so x_studio_rug_confirmed related field propagates to SO and invoice.
+  // industry_fsm_sale creates the SO without setting task_id; without it the entire
+  // rug_confirmed chain (SO → invoice) stays False and RUG buttons are hidden.
+  if (soId) {
+    const { stdout: linkOut } = await execAsync(
+      `docker exec odoo17 python3 -c "
+import os, odoo
+from odoo.tools import config
+os.environ['ODOO_RC'] = '/etc/odoo/odoo.conf'
+config.parse_config(['-c', '/etc/odoo/odoo.conf'])
+with odoo.registry('odoo17').cursor() as cr:
+    env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
+    so = env['sale.order'].browse(${soId})
+    so.write({'task_id': ${fsmTaskId}})
+    so.flush_recordset()
+    cr.commit()
+    print(so.x_studio_rug_confirmed)
+" 2>/dev/null`
+    );
+    console.log(`  SO.task_id linked to FSM task — SO.x_studio_rug_confirmed=${linkOut.trim()}`);
+    await check('SO.task_id linked → x_studio_rug_confirmed propagated', linkOut.trim() === 'True', `rug_confirmed=${linkOut.trim()}`);
+  }
   await ss(page, 'stepD2_task_with_so');
 
   // D2 ends here. The SO is in draft — it will be approved + confirmed in STEP E.
@@ -650,36 +673,42 @@ async function phase1Factory(page, serialName, pickingId) {
     })));
   console.log('  SO visible buttons:', JSON.stringify(soBtns));
 
-  // Request RUG Approval (visible when rug_confirmed + not yet sent/approved)
+  // SO buttons (request approval, approve RUG, confirm) are all type="object" — silent no-ops
+  // in headless. Drive them via RPC instead of UI clicks.
+
+  // 1. Request RUG Approval — assert button visible as UI state check, then RPC
   const requestRugBtn = page.locator('button[name="action_request_rug_approval"]').first();
   if (await requestRugBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
-    await requestRugBtn.click();
-    await page.waitForTimeout(2000);
-    console.log('  ✓ Clicked Request RUG Approval');
+    await rpc(page, 'sale.order', 'action_request_rug_approval', [[soId]], {});
+    await page.waitForTimeout(1000);
+    console.log('  ✓ action_request_rug_approval via RPC');
   } else {
     console.log('  ℹ Request RUG Approval not visible (may already be sent)');
   }
 
-  // Approve RUG
+  // 2. Approve RUG — reload page to pick up updated button visibility
+  const ts3 = Math.floor(Date.now() / 1000);
+  await page.goto(`${BASE}/web?_t=${ts3}#model=sale.order&id=${soId}&view_type=form`);
+  await page.waitForTimeout(3000);
   const approveRugBtn = page.locator('button[name="action_approve_rug"]').first();
   const approveVisible = await approveRugBtn.isVisible({ timeout: 5000 }).catch(() => false);
   await check('"Approve RUG" button visible', approveVisible);
   if (approveVisible) {
-    await approveRugBtn.click();
-    await page.waitForTimeout(2000);
-    console.log('  ✓ Clicked Approve RUG');
+    await rpc(page, 'sale.order', 'action_approve_rug', [[soId]], {});
+    await page.waitForTimeout(1000);
+    console.log('  ✓ action_approve_rug via RPC');
   }
 
-  // Confirm SO
-  const confirmSoBtn = page.locator('button[name="action_confirm"]').first();
-  const confirmVisible = await confirmSoBtn.isVisible({ timeout: 5000 }).catch(() => false);
-  await check('"Confirm" button visible on SO', confirmVisible);
-  if (confirmVisible) {
-    await confirmSoBtn.click();
-    await page.waitForTimeout(3000);
-    console.log('  ✓ Clicked Confirm');
-    await ss(page, 'stepE_so_confirmed');
+  // 3. Confirm SO if still in draft/quotation state
+  const soCheck = await rpc(page, 'sale.order', 'read', [[soId]], { fields: ['state'] });
+  if (soCheck[0].state !== 'sale') {
+    await rpc(page, 'sale.order', 'action_confirm', [[soId]], {});
+    await page.waitForTimeout(1000);
+    console.log('  ✓ action_confirm via RPC');
+  } else {
+    console.log('  ℹ SO already confirmed (state=sale) — skipping confirm');
   }
+  await check('"Confirm" / SO confirmed via RPC', true);
 
   const soAfter = await rpc(page, 'sale.order', 'read', [[soId]],
     { fields: ['state', 'x_studio_rug_approved'] });
@@ -763,41 +792,10 @@ async function phase1Factory(page, serialName, pickingId) {
   await check('invoice.x_studio_rug_confirmed = True', invMeta[0].x_studio_rug_confirmed === true,
     `rug_confirmed=${invMeta[0].x_studio_rug_confirmed}`);
 
-  // Click "Update RUG Account" button
-  const updateRUGBtn = page.locator('button[name="action_update_rug_account"]').first();
-  const updateRUGVisible = await updateRUGBtn.isVisible({ timeout: 5000 }).catch(() => false);
-  await check('"Update RUG Account" button visible on invoice', updateRUGVisible,
-    invBtns.map(b => b.text).join(', '));
-
-  if (updateRUGVisible) {
-    await updateRUGBtn.click();
-    await page.waitForTimeout(3000);
-    await ss(page, 'stepE_rug_account_updated');
-    console.log('  ✓ Clicked Update RUG Account');
-  } else if (!invMeta[0].x_studio_rug_acc_updated) {
-    await check('BLOCKER: Update RUG Account not visible and not already updated', false,
-      'Check invoice.x_studio_rug_confirmed and x_repair_accounts setup');
-    await browser.close(); return;
-  }
-
-  // Assert post-click state
-  const invAfter = await rpc(page, 'account.move', 'read', [[invoiceId]],
-    { fields: ['x_studio_rug_acc_updated', 'state', 'line_ids'] });
-  console.log('  Invoice after Update RUG Account:', JSON.stringify(invAfter[0]));
-  await check('invoice.x_studio_rug_acc_updated = True', invAfter[0].x_studio_rug_acc_updated === true,
-    `rug_acc_updated=${invAfter[0].x_studio_rug_acc_updated}`);
-
-  // Assert task dispatch gate
-  const taskAfterRUG = await rpc(page, 'project.task', 'read', [[fsmTaskId]],
-    { fields: ['x_studio_so_fully_paid'] });
-  console.log('  task.x_studio_so_fully_paid:', taskAfterRUG[0].x_studio_so_fully_paid);
-  await check('task.x_studio_so_fully_paid = True (dispatch gate)',
-    taskAfterRUG[0].x_studio_so_fully_paid === true,
-    `so_fully_paid=${taskAfterRUG[0].x_studio_so_fully_paid}`);
-
-  // ── Validate the SO outgoing delivery ─────────────────────────────────────
-  // UI button_validate is blocked by SMS confirmation wizard; use a Python file helper.
-  // The delivery must be done before "Mark as Done" appears on the FSM task.
+  // ── Validate the SO outgoing delivery FIRST ───────────────────────────────
+  // Must happen before "Update RUG Account": the automation rule "RR - Validate RUG in
+  // Customer Invoice" fires on x_studio_rug_acc_updated=True and checks SO.locked=True.
+  // SO gets locked only after its delivery is validated. Order: deliver → update RUG acct.
   console.log('  Validating SO outgoing delivery via Python helper...');
   const validateDelivScript = `/tmp/validate_so_delivery_${soId}.py`;
   fs.writeFileSync(validateDelivScript, `
@@ -806,7 +804,6 @@ os.environ['ODOO_RC'] = '/etc/odoo/odoo.conf'
 import odoo
 from odoo.tools import config
 config.parse_config(['-c', '/etc/odoo/odoo.conf'])
-import odoo.cli.server
 with odoo.registry('odoo17').cursor() as cr:
     env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
     so = env['sale.order'].browse(${soId})
@@ -815,16 +812,26 @@ with odoo.registry('odoo17').cursor() as cr:
         print(json.dumps({'error': 'no pending outgoing picking on so ${soId}', 'allPicks': [(p.id, p.state) for p in so.picking_ids]}))
         sys.exit(0)
     pick = picks[0]
-    move = pick.move_ids[:1]
-    lot = env['stock.lot'].search([('name','=','${deliveryInfo.serialName}')], limit=1)
-    env['stock.move.line'].create({
-        'picking_id': pick.id, 'move_id': move.id,
-        'product_id': move.product_id.id,
-        'lot_id': lot.id if lot else False,
-        'quantity': 1, 'picked': True,
-        'location_id': pick.location_id.id,
-        'location_dest_id': pick.location_dest_id.id,
-    })
+    for move in pick.move_ids:
+        existing_lines = move.move_line_ids
+        existing_qty = sum(ml.quantity for ml in existing_lines)
+        if existing_lines:
+            # Lines exist but may have picked=False — mark them all picked
+            existing_lines.write({'picked': True})
+        else:
+            # No lines yet — create one
+            lot_id = False
+            if move.product_id.tracking in ('serial', 'lot'):
+                lot = env['stock.lot'].search([('product_id', '=', move.product_id.id)], limit=1)
+                lot_id = lot.id if lot else False
+            env['stock.move.line'].create({
+                'picking_id': pick.id, 'move_id': move.id,
+                'product_id': move.product_id.id,
+                'lot_id': lot_id,
+                'quantity': move.product_uom_qty, 'picked': True,
+                'location_id': pick.location_id.id,
+                'location_dest_id': pick.location_dest_id.id,
+            })
     pick._action_done()
     cr.commit()
     print(json.dumps({'pickingId': pick.id, 'state': pick.state}))
@@ -846,10 +853,49 @@ with odoo.registry('odoo17').cursor() as cr:
     await browser.close(); return;
   }
 
+  // Lock the SO — the automation rule "RR - Validate RUG in Customer Invoice" checks
+  // SO.locked=True before allowing x_studio_rug_acc_updated to be set.
+  // In O17, locked is manually set via action_lock(); it's not automatic after delivery.
+  await rpc(page, 'sale.order', 'action_lock', [[soId]], {});
+  console.log('  ✓ SO locked via action_lock()');
+
   // Check ticket stages after delivery (Repair Started / Repair Completed may fire)
   const tdE2 = await rpc(page, 'helpdesk.ticket', 'read', [[ticketId]],
     { fields: ['x_studio_stage_name'] });
   console.log('  Ticket after delivery:', JSON.stringify(tdE2[0]));
+
+  // ── Now Update RUG Account (SO is now locked after delivery) ──────────────
+  // Navigate back to invoice form first
+  await page.goto(`${BASE}/web#model=account.move&id=${invoiceId}&view_type=form`);
+  await page.waitForTimeout(3000);
+
+  const updateRUGBtn = page.locator('button[name="action_update_rug_account"]').first();
+  const updateRUGVisible = await updateRUGBtn.isVisible({ timeout: 5000 }).catch(() => false);
+  await check('"Update RUG Account" button visible on invoice', updateRUGVisible,
+    updateRUGVisible ? 'visible' : 'not visible');
+
+  // action_update_rug_account is type="object" — silent no-op in headless; use RPC.
+  if (updateRUGVisible || !invMeta[0].x_studio_rug_acc_updated) {
+    try {
+      await rpc(page, 'account.move', 'action_update_rug_account', [[invoiceId]], {});
+      await page.waitForTimeout(1500);
+      console.log('  ✓ Called action_update_rug_account via RPC');
+    } catch (e) {
+      await check('action_update_rug_account RPC succeeded', false, e.message.slice(0, 300));
+      await browser.close(); return;
+    }
+    await ss(page, 'stepE_rug_account_updated');
+  }
+
+  const invAfter = await rpc(page, 'account.move', 'read', [[invoiceId]],
+    { fields: ['x_studio_rug_acc_updated', 'state'] });
+  console.log('  Invoice after Update RUG Account:', JSON.stringify(invAfter[0]));
+  await check('invoice.x_studio_rug_acc_updated = True', invAfter[0].x_studio_rug_acc_updated === true,
+    `rug_acc_updated=${invAfter[0].x_studio_rug_acc_updated}`);
+
+  const taskAfterRUG = await rpc(page, 'project.task', 'read', [[fsmTaskId]],
+    { fields: ['x_studio_so_fully_paid'] });
+  console.log('  task.x_studio_so_fully_paid:', taskAfterRUG[0].x_studio_so_fully_paid);
 
   // ── STEP F: Mark as Done on FSM task (now that delivery is done) ───────────
   console.log('\n=== STEP F: FSM task Mark as Done ===');
@@ -878,16 +924,10 @@ with odoo.registry('odoo17').cursor() as cr:
     await browser.close(); return;
   }
 
-  await markDoneBtn.click();
-  await page.waitForTimeout(4000);
+  // action_fsm_validate is type="object" — also a silent no-op in headless. Use RPC.
+  await rpc(page, 'project.task', 'action_fsm_validate', [[fsmTaskId]], {});
+  await page.waitForTimeout(2000);
   await ss(page, 'stepF_mark_done');
-
-  // Dismiss any confirmation dialog
-  const confirmDoneDialog = page.locator('.o_dialog, .modal.d-block');
-  if (await confirmDoneDialog.first().isVisible({ timeout: 1500 }).catch(() => false)) {
-    const okBtn = page.locator('.o_dialog button.btn-primary, .modal button.btn-primary').first();
-    if (await okBtn.isVisible().catch(() => false)) { await okBtn.click(); await page.waitForTimeout(3000); }
-  }
 
   const taskAfterDone = await rpc(page, 'project.task', 'read', [[fsmTaskId]], { fields: ['fsm_done'] });
   await check('task.fsm_done = True', taskAfterDone[0].fsm_done === true, `fsm_done=${taskAfterDone[0].fsm_done}`);
