@@ -69,6 +69,15 @@ class ProjectTask(models.Model):
             total_paid = sum(i.amount_total - i.amount_residual for i in invoices)
             task.x_studio_so_fully_paid = bool(invoices) and total_paid >= so.amount_total - 0.01
 
+    def _fsm_create_sale_order(self):
+        # industry_fsm_sale creates the SO but never sets SO.task_id.
+        # SO.task_id is required for the x_studio_rug_confirmed related-field chain:
+        #   SO.x_studio_rug_confirmed ← task_id.helpdesk_ticket_id.x_studio_rug_confirmed
+        # Without it, the RUG approval buttons and Update RUG Account are hidden.
+        super()._fsm_create_sale_order()
+        if self.sale_order_id and not self.sale_order_id.task_id:
+            self.sale_order_id.task_id = self
+
     def action_validate_diagnosis(self):
         self.ensure_one()
         missing = []
