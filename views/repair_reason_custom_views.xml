@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_repair_reason_custom_list" model="ir.ui.view">
+        <field name="name">x_repair_reason_custom.list</field>
+        <field name="model">x_repair_reason_custom</field>
+        <field name="arch" type="xml">
+            <tree string="Repair Reasons">
+                <field name="x_studio_sequence" widget="handle"/>
+                <field name="x_name"/>
+                <field name="x_active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_repair_reason_custom_form" model="ir.ui.view">
+        <field name="name">x_repair_reason_custom.form</field>
+        <field name="model">x_repair_reason_custom</field>
+        <field name="arch" type="xml">
+            <form string="Repair Reason">
+                <sheet>
+                    <group>
+                        <field name="x_name"/>
+                        <field name="x_active"/>
+                        <field name="x_studio_sequence"/>
+                        <field name="x_color" widget="color_picker"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_repair_reason_custom" model="ir.actions.act_window">
+        <field name="name">Repair Reasons</field>
+        <field name="res_model">x_repair_reason_custom</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_repair_reason_custom"
+              name="Repair Reasons"
+              action="action_repair_reason_custom"
+              parent="helpdesk.menu_helpdesk_root"
+              sequence="50"
+              groups="helpdesk.group_helpdesk_manager"/>
+
+</odoo>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_task_form_repair_tabs" model="ir.ui.view">
+        <field name="name">project.task.form.inherit.repair.tabs</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="project.view_task_form2"/>
+        <field name="arch" type="xml">
+            <!-- helpdesk_ticket_id + diagnosis_validated needed for tab visibility / gates -->
+            <xpath expr="//sheet" position="inside">
+                <field name="helpdesk_ticket_id" invisible="1"/>
+                <field name="x_studio_diagnosis_validated" invisible="1"/>
+            </xpath>
+            <!-- Validate Diagnosis header button -->
+            <xpath expr="//header" position="inside">
+                <field name="x_studio_end_quick_repair" invisible="1"/>
+                <button name="action_validate_diagnosis"
+                        string="Validate Diagnosis"
+                        type="object"
+                        class="btn-primary"
+                        invisible="x_studio_diagnosis_validated or not helpdesk_ticket_id"/>
+                <button name="action_tested_ok"
+                        string="Tested OK"
+                        type="object"
+                        class="btn-primary"
+                        invisible="material_line_product_count &gt; 0 or not helpdesk_ticket_id or x_studio_end_quick_repair"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Repair Image" name="studio_page_VxXz6">
+                    <group>
+                        <group>
+                            <field widget="image" name="x_studio_repair_image_01"
+                                   string="Repair Image 01" options='{"size": [0, 270]}'
+                                   readonly="x_studio_diagnosis_validated"/>
+                        </group>
+                        <group>
+                            <field widget="image" name="x_studio_repair_image_02"
+                                   string="Repair Image 02" options='{"size": [0, 270]}'
+                                   readonly="x_studio_diagnosis_validated"/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Warranty Details" name="studio_page_q4maT">
+                    <group>
+                        <group>
+                            <field name="x_studio_warranty_card" widget="image"
+                                   string="Warranty Card" options='{"size": [0, 270]}'/>
+                        </group>
+                        <group>
+                            <field name="x_studio_related_information" widget="image"
+                                   string="Related Information" options='{"size": [0, 270]}'/>
+                        </group>
+                    </group>
+                </page>
+                <page string="Repair Diagnosis" name="studio_page_M5qFQ"
+                      invisible="not helpdesk_ticket_id">
+                    <field name="x_studio_diagnosis_ids" force_save="True"
+                           readonly="x_studio_diagnosis_validated">
+                        <tree editable="bottom">
+                            <field name="x_studio_sequence" widget="handle"/>
+                            <field name="x_name" column_invisible="1"/>
+                            <field name="x_studio_condition" optional="show" column_invisible="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_symptom_area" optional="show" column_invisible="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_symptom_code" optional="show" column_invisible="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_description" optional="show"/>
+                            <field name="x_studio_diagnosis_area" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_diagnosis_code" optional="show" required="1"
+                                   domain="[['x_studio_diagnosis_area_1', '=', x_studio_diagnosis_area]]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_reason" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_sub_reason" optional="show" required="1"
+                                   domain="[['x_studio_reason_code', '=', x_studio_reason]]"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_resolution" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_repair_stage" optional="show" required="1"
+                                   options="{'no_create': True, 'no_quick_create': True}"/>
+                            <field name="x_studio_task_id" string="Task" optional="show" column_invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Gate the Products smart icon behind diagnosis validation.
+         Inherits industry_fsm_sale.view_task_form2_inherit (which adds action_fsm_view_material). -->
+    <record id="view_task_form_products_gate" model="ir.ui.view">
+        <field name="name">project.task.form.inherit.products.gate</field>
+        <field name="model">project.task</field>
+        <field name="inherit_id" ref="industry_fsm_sale.view_task_form2_inherit"/>
+        <field name="priority">50</field>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_fsm_view_material']" position="attributes">
+                <attribute name="invisible">not partner_id or not allow_material or not x_studio_diagnosis_validated</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+
+        <record id="template_repair_customer_letter" model="mail.template">
+            <field name="name">Repair - Customer Letter</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">{{ object.display_name }}</field>
+            <field name="email_to">{{ (object.partner_email if not object.sudo().partner_id.email or object.sudo().partner_id.email != object.partner_email else '') }}</field>
+            <field name="body_html"><![CDATA[
+<p>Customer Name: <t t-out="object.partner_id.display_name"> </t></p>
+<p>Dear Sir/Madam,</p>
+<p>We have pleasure in advising you that the <t t-out="object.product_id.display_name"> </t> pumping unit sent to us for repairs is now ready for collection.
+(IF THIS UNIT IS NOT COLLECTED WITHIN 2 WEEKS OF LETTER STORAGE CHARGE OF RS 15/- PER DAY WILL BE LEVIED.)</p>
+<p>The balance due Rs. <t t-out="object.x_studio_balance_due"> </t> should be paid in cash prior to collection
+(IF PAYMENT IS MADE BY CHEQUE, THE PUMP CAN BE COLLECTED ONLY ON REALIZATION OF THE CHEQUE)</p>
+<p>When calling to make final payment and collecting the pump our reservation deposit number and our machinery report number
+<t t-out="object.display_name"> </t> must be surrendered.
+(IF EITHER OR BOTH OF RECEIPTS ARE LOST, OT CANNOT BE SURRENDERED, AN AFFIDAVIT MUST BE SUBMITTED.)</p>
+<p>If the pump is to be handed over to a representative, please send through him/her letter authorizing us to hand over the pump to him/her.
+His/her specimen signature and national identity card should be certified by you.</p>
+<p>Assuring you of our best attention</p>
+<p>Yours faithfully,</p>
+            ]]></field>
+        </record>
+
+        <record id="template_repair_final_notice" model="mail.template">
+            <field name="name">Repair - Final Notice</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">{{ object.display_name }}</field>
+            <field name="email_to">{{ (object.partner_email if not object.sudo().partner_id.email or object.sudo().partner_id.email != object.partner_email else '') }}</field>
+            <field name="body_html"><![CDATA[
+<p>Customer Name: <t t-out="object.partner_id.display_name"> </t></p>
+<p>REPAIRS TO <t t-out="object.product_id.display_name"> </t> PUMP - FINAL NOTICE</p>
+<p>Dear Sir/Madam,</p>
+<p>We refer to the "CENTRIC" type pumping unit No <t t-out="object.product_id.display_name"> </t>
+repaired on the above references and job number. We note that you have not responded to our email dated
+<t t-out="object.x_studio_created_on_8"> </t> and requesting you to collect same.</p>
+<p>Since we are unable to store this pumping unit any longer, we must finally request you to make payment of
+Rs. <t t-out="object.x_studio_balance_due"> </t> in cash and remove same from our workshop within 2 weeks of this letter.
+(PLEASE NOTE THAT A STORAGE CHARGE OF RS 15/- PER DAY WILL BE LEVIED FROM
+<t t-out="object.x_studio_created_on_8"> </t> IN ADDITION TO THE REPAIR CHARGE.)</p>
+<p>When calling to make final payment and collecting the pump our reservation deposit receipt number
+<t t-out="object.name"> </t> must be surrendered.
+(OR BOTH OF THESE RECEIPTS ARE LOST, OR CANNOT BE SURRENDERED AN AFFIDAVIT MUST BE SUBMITTED.)</p>
+<p>If the pump is to be handed over to a representative, please send through him a letter authorizing us to hand over the pump to him/her.</p>
+<p>If the pump is not collected within 2 weeks of this letter, it will be considered to be abandoned and will be destroyed.</p>
+<p>Yours faithfully,<br/><br/>Jinasena Ltd<br/><br/>Repairs Department</p>
+            ]]></field>
+        </record>
+
+        <record id="template_repair_final_notice_estimated" model="mail.template">
+            <field name="name">Repair - Final Notice - Estimated</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">{{ object.display_name }}</field>
+            <field name="email_to">{{ (object.partner_email if not object.sudo().partner_id.email or object.sudo().partner_id.email != object.partner_email else '') }}</field>
+            <field name="body_html"><![CDATA[
+<p>Customer Name: <t t-out="object.partner_id.display_name"> </t></p>
+<p>CENTRIC PUMPS HANDED IN FOR REPAIRS - FINAL NOTICE</p>
+<p>Dear Sir/Madam,</p>
+<p>We refer to the "CENTRIC" type <t t-out="object.product_id.display_name"> </t> given to us for repairs
+and our quotation dated <t t-out="object.x_studio_sale_order.create_date"> </t>.
+It is noted with regret that you have not responded to this quotation to date.
+We now wish to inform you that this quotation is no longer valid and we are not in a position to store this pump in our stores.</p>
+<p>Due to limited space we have, we must make an urgent request to you, to make necessary arrangements to collect same within
+10 days of this e-mail, in which event, we shall not be responsible for this item after the stipulated time period.</p>
+<p>When calling to collect same, please ensure to produce the repair receipt issued to you at the time the pump was handed over to us.</p>
+<p>Yours faithfully,<br/><br/>Jinasena Ltd<br/><br/>Repairs Department</p>
+            ]]></field>
+        </record>
+
+        <record id="template_repair_final_notice_scrappage" model="mail.template">
+            <field name="name">Repair - Final Notice - Scrappage</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">{{ object.display_name }}</field>
+            <field name="email_to">{{ (object.partner_email if not object.sudo().partner_id.email or object.sudo().partner_id.email != object.partner_email else '') }}</field>
+            <field name="body_html"><![CDATA[
+<p>Customer Name: <t t-out="object.partner_id.display_name"> </t></p>
+<p>NOTICE OF SCRAPPAGE</p>
+<p>Dear Sir/Madam,</p>
+<p>We refer to the "CENTRIC" type <t t-out="object.product_id.display_name"> </t> water pump handed over to us on
+<t t-out="object.x_studio_created_on_1"> </t> under the reference number <t t-out="object.name"> </t>
+and regret to note that in spite of ready for collection notices sent to you on
+<t t-out="object.create_date"> </t>, you have failed to respond positively.</p>
+<p>We regret to note that you continue to ignore our notices and can only assume that you are no longer interested in
+this pump and accordingly we have scrapped this item.</p>
+<p>Therefore, please be informed that we are no longer responsible for this item.</p>
+<p>Yours faithfully,</p>
+            ]]></field>
+        </record>
+
+        <record id="template_repair_reminding_letter" model="mail.template">
+            <field name="name">Repair - Reminding Letter</field>
+            <field name="model_id" ref="helpdesk.model_helpdesk_ticket"/>
+            <field name="subject">{{ object.display_name }}</field>
+            <field name="email_to">{{ (object.partner_email if not object.sudo().partner_id.email or object.sudo().partner_id.email != object.partner_email else '') }}</field>
+            <field name="body_html"><![CDATA[
+<p>Customer Name: <t t-out="object.partner_id.display_name"> </t></p>
+<p>REMINDER</p>
+<p>Dear Sir/Madam,</p>
+<p>We refer to the "CENTRIC" type <t t-out="object.product_id.display_name"> </t>
+pumping unit No <t t-out="object.x_studio_serial_no.display_name"> </t>
+repaired on the above references and job number. We note that you have not responded to our letter dated
+<t t-out="object.create_date"> </t> and requesting you to collect same.</p>
+<p>Due to limited space for holding "Awaiting collection pumps" in Colombo, we must take an urgent request to you
+to make necessary arrangements to collect same from our repair department at Colombo.</p>
+<p>When calling to collect please ensure that you have all necessary documents including the repair receipt
+issued to you at the time the pump was handed over to us.</p>
+<p>In the event that the pump is not collected within 10 days of this letter we will be transferring this pump
+to our warehouse in Ekala and the pump can only be collected by you from our warehouse after making payment
+(if any) at our Colombo office.</p>
+<p>To avoid the resultant inconvenience to you, please ensure you pay close attention to this communication.</p>
+<p>Yours faithfully,<br/><br/>Jinasena Ltd<br/><br/>Repairs Department</p>
+            ]]></field>
+        </record>
+
+    </data>
+</odoo>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <record id="repair_reason_1" model="x_repair_reason_custom">
+            <field name="x_name">Difficult to start the engine</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_2" model="x_repair_reason_custom">
+            <field name="x_name">High current consumption</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_3" model="x_repair_reason_custom">
+            <field name="x_name">Heavy smoke</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_4" model="x_repair_reason_custom">
+            <field name="x_name">Maximum head not reached</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_5" model="x_repair_reason_custom">
+            <field name="x_name">Low out put</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_6" model="x_repair_reason_custom">
+            <field name="x_name">Low pressure</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_7" model="x_repair_reason_custom">
+            <field name="x_name">Unit makes a mechanical noise or rattle</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_8" model="x_repair_reason_custom">
+            <field name="x_name">Motor not getting started</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_9" model="x_repair_reason_custom">
+            <field name="x_name">Motor getting tripped from TOC</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+        <record id="repair_reason_10" model="x_repair_reason_custom">
+            <field name="x_name">Pump stops after some time</field>
+            <field name="x_active">True</field>
+            <field name="x_studio_sequence">10</field>
+        </record>
+
+    </data>
+</odoo>

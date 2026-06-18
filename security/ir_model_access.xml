@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="access_repair_accounts_user" model="ir.model.access">
+        <field name="name">x_repair_accounts user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_accounts')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <record id="access_repair_accounts_manager" model="ir.model.access">
+        <field name="name">x_repair_accounts manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_accounts')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <record id="access_repair_reason_custom_user" model="ir.model.access">
+        <field name="name">x_repair_reason_custom user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_reason_custom')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+
+    <record id="access_repair_reason_custom_manager" model="ir.model.access">
+        <field name="name">x_repair_reason_custom manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_reason_custom')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+
+    <!-- x_repair_reason -->
+    <record id="access_repair_reason_user" model="ir.model.access">
+        <field name="name">x_repair_reason user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_reason')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_repair_reason_manager" model="ir.model.access">
+        <field name="name">x_repair_reason manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_reason')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_conditions -->
+    <record id="access_conditions_user" model="ir.model.access">
+        <field name="name">x_conditions user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_conditions')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_conditions_manager" model="ir.model.access">
+        <field name="name">x_conditions manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_conditions')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_diagnosis_areas -->
+    <record id="access_diagnosis_areas_user" model="ir.model.access">
+        <field name="name">x_diagnosis_areas user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_diagnosis_areas')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_diagnosis_areas_manager" model="ir.model.access">
+        <field name="name">x_diagnosis_areas manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_diagnosis_areas')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_diagnosis_codes -->
+    <record id="access_diagnosis_codes_user" model="ir.model.access">
+        <field name="name">x_diagnosis_codes user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_diagnosis_codes')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_diagnosis_codes_manager" model="ir.model.access">
+        <field name="name">x_diagnosis_codes manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_diagnosis_codes')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_repair_stages -->
+    <record id="access_repair_stages_user" model="ir.model.access">
+        <field name="name">x_repair_stages user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_stages')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_repair_stages_manager" model="ir.model.access">
+        <field name="name">x_repair_stages manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_stages')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_repair_sub_reason -->
+    <record id="access_repair_sub_reason_user" model="ir.model.access">
+        <field name="name">x_repair_sub_reason user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_sub_reason')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_repair_sub_reason_manager" model="ir.model.access">
+        <field name="name">x_repair_sub_reason manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_repair_sub_reason')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_resolutions -->
+    <record id="access_resolutions_user" model="ir.model.access">
+        <field name="name">x_resolutions user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_resolutions')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_resolutions_manager" model="ir.model.access">
+        <field name="name">x_resolutions manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_resolutions')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_symptom_areas -->
+    <record id="access_symptom_areas_user" model="ir.model.access">
+        <field name="name">x_symptom_areas user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_symptom_areas')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_symptom_areas_manager" model="ir.model.access">
+        <field name="name">x_symptom_areas manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_symptom_areas')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_symptom_codes -->
+    <record id="access_symptom_codes_user" model="ir.model.access">
+        <field name="name">x_symptom_codes user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_symptom_codes')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">0</field>
+        <field name="perm_create">0</field>
+        <field name="perm_unlink">0</field>
+    </record>
+    <record id="access_symptom_codes_manager" model="ir.model.access">
+        <field name="name">x_symptom_codes manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_symptom_codes')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+    <!-- x_task_diagnosis (technicians write rows) -->
+    <record id="access_task_diagnosis_user" model="ir.model.access">
+        <field name="name">x_task_diagnosis user</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_task_diagnosis')]"/>
+        <field name="group_id" ref="base.group_user"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+    <record id="access_task_diagnosis_manager" model="ir.model.access">
+        <field name="name">x_task_diagnosis manager</field>
+        <field name="model_id" model="ir.model" search="[('model','=','x_task_diagnosis')]"/>
+        <field name="group_id" ref="helpdesk.group_helpdesk_manager"/>
+        <field name="perm_read">1</field>
+        <field name="perm_write">1</field>
+        <field name="perm_create">1</field>
+        <field name="perm_unlink">1</field>
+    </record>
+
+</odoo>

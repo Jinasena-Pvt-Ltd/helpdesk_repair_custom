@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Tree view for helpdesk.ticket.type: add repair field columns (Studio) -->
+    <record id="helpdesk_ticket_type_view_tree_studio" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.type.tree.studio</field>
+        <field name="model">helpdesk.ticket.type</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_type_view_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//tree[1]/field[@name='name']" position="after">
+                <field optional="show" name="x_studio_rug" string="RUG"/>
+                <field optional="show" name="x_studio_rug_confirmed" string="RUG Confirmed"/>
+                <field optional="show" name="x_studio_with_serial_no" string="With Serial No"/>
+                <field optional="show" name="x_studio_without_serial_no" string="Without Serial No"/>
+                <field name="id" optional="show" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Form view for helpdesk.ticket.type with repair-specific fields -->
+    <record id="helpdesk_ticket_type_view_form" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.type.form</field>
+        <field name="model">helpdesk.ticket.type</field>
+        <field name="arch" type="xml">
+            <form string="Ticket Type">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="x_studio_rug" string="RUG"/>
+                        <field name="x_studio_rug_confirmed" string="RUG Confirmed"
+                               invisible="not x_studio_rug"/>
+                        <field name="x_studio_with_serial_no" string="With Serial No"/>
+                        <field name="x_studio_without_serial_no" string="Without Serial No"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>

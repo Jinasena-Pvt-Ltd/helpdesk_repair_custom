@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── helpdesk.stage form view: add x_studio_company_id after sequence (Studio) ── -->
+    <record id="helpdesk_stage_view_form_studio" model="ir.ui.view">
+        <field name="name">helpdesk.stage.form.studio</field>
+        <field name="model">helpdesk.stage</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_stage_view_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sequence']" position="after">
+                <field name="x_studio_company_id" string="Company"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

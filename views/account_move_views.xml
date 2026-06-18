@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Customer Invoice: RUG account-update button + status fields -->
+    <record id="account_move_form_rug" model="ir.ui.view">
+        <field name="name">account.move.form.rug</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <!-- "Update RUG Account" button in header -->
+            <xpath expr="//button[@name='action_post']" position="before">
+                <button name="action_update_rug_account"
+                        type="object"
+                        string="Update RUG Account"
+                        class="btn-primary"
+                        invisible="not x_studio_rug_confirmed or x_studio_rug_acc_updated or (x_studio_rug_confirmed and x_studio_rug_rejected)"/>
+            </xpath>
+            <!-- Hidden RUG state fields (force_save so they stay synced) -->
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="x_studio_rug_confirmed" invisible="1" force_save="1"/>
+                <field name="x_studio_rug_rejected" invisible="1" force_save="1"/>
+                <field name="x_studio_rug_acc_updated"
+                       string="RUG Account Updated"
+                       readonly="1"
+                       force_save="1"
+                       invisible="1"/>
+            </xpath>
+            <!-- Gap A: hide Confirm/Post button while RUG is confirmed-but-not-updated -->
+            <xpath expr="//header/button[@name='action_post'][2]" position="attributes">
+                <attribute name="invisible">hide_post_button or move_type == 'entry' or display_inactive_currency_warning or (x_studio_rug_confirmed and not x_studio_rug_rejected and not x_studio_rug_acc_updated)</attribute>
+            </xpath>
+            <!-- Gap C: read-only Journal Items tab for all users -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Journal Items" name="rug_journal_items">
+                    <field name="line_ids" readonly="1">
+                        <tree string="Journal Items" create="false" edit="false" delete="false"
+                              decoration-muted="display_type in ('line_section', 'line_note')">
+                            <field name="account_id"/>
+                            <field name="partner_id" optional="hide"/>
+                            <field name="name"/>
+                            <field name="debit" sum="Total Debit"/>
+                            <field name="credit" sum="Total Credit"/>
+                            <field name="display_type" column_invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

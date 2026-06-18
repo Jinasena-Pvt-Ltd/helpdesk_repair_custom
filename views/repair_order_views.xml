@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ── repair.order form: add confirm_draft_quotation field after tag_ids (Studio) ── -->
+    <record id="repair_order_view_form_studio" model="ir.ui.view">
+        <field name="name">repair.order.form.studio</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='tag_ids']" position="after">
+                <field name="x_studio_confirm_draft_quotation" string="Confirm Draft Quotation"
+                       force_save="True" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ── repair.order button customizations (Studio, priority 50000) ── -->
+    <record id="repair_order_view_form_studio_buttons" model="ir.ui.view">
+        <field name="name">repair.order.form.studio.buttons</field>
+        <field name="model">repair.order</field>
+        <field name="inherit_id" ref="repair.view_repair_order_form"/>
+        <field name="priority">50000</field>
+        <field name="arch" type="xml">
+            <data>
+
+                <!-- Confirm Draft Quotation button (before Validate) -->
+                <xpath expr="//header/button[@name='action_validate']" position="before">
+                    <button type="action"
+                            name="%(helpdesk_repair_custom.action_confirm_draft_quotation)d"
+                            string="Confirm Draft Quotation" class="btn-primary"
+                            invisible="x_studio_confirm_draft_quotation"/>
+                </xpath>
+
+                <!-- Validate: hide until quotation confirmed (Odoo 17 base: invisible="state != 'draft'") -->
+                <xpath expr="//header/button[@name='action_validate']" position="attributes">
+                    <attribute name="invisible">state != 'draft' or not x_studio_confirm_draft_quotation</attribute>
+                </xpath>
+
+                <!-- NOTE: Odoo 17 repair form removed the Send-by-Email and Print Repair Order
+                     header buttons and the duplicate Cancel button present in Odoo 15, so the
+                     corresponding Studio visibility overrides no longer apply. -->
+
+            </data>
+        </field>
+    </record>
+
+</odoo>
