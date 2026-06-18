@@ -52,4 +52,7 @@ class AccountMove(models.Model):
                 self.action_post()
                 self._compute_payment_state()
 
+        if self.x_studio_sale_id and not self.x_studio_sale_id.locked:
+            self.x_studio_sale_id.action_lock()
+
         self.write({'x_studio_rug_acc_updated': True})
