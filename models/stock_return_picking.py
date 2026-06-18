@@ -78,4 +78,11 @@ class StockReturnPicking(models.TransientModel):
                     [('helpdesk_ticket_id', '=', ticket.id)], limit=1)
                 if task:
                     task.x_studio_dispatch_done = True
+                # Copy lot from source picking move lines — the return wizard
+                # doesn't carry lot_id onto the new dispatch picking's move lines.
+                lot = ticket.x_studio_serial_no
+                if lot:
+                    new_picking.move_line_ids.filtered(
+                        lambda ml: not ml.lot_id and ml.product_id == lot.product_id
+                    ).write({'lot_id': lot.id})
         return result
