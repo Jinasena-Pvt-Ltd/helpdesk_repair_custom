@@ -219,6 +219,16 @@ class StockPicking(models.Model):
                 })
 
     def _action_done(self):
+        # For dispatch pickings, fill missing lot from the ticket serial before
+        # validation. create_returns() runs before move lines are reserved, so
+        # the lot cannot be written there; this is the reliable hook.
+        for pick in self.filtered(lambda p: p.x_studio_is_dispatch):
+            ticket = pick.x_studio_helpdesk_ticket_id
+            lot = ticket.x_studio_serial_no if ticket else False
+            if lot:
+                pick.move_line_ids.filtered(
+                    lambda ml: not ml.lot_id and ml.product_id == lot.product_id
+                ).write({'lot_id': lot.id})
         result = super()._action_done()
         # Also trigger dispatch handover when picking is validated directly (bypassing button_validate)
         self._handle_dispatch_handover(self)
