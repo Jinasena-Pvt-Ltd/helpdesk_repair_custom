@@ -111,9 +111,13 @@ class SaleOrder(models.Model):
         for order in self:
             order._check_resupply_warehouse_stock()
         res = super().action_confirm()
-        repair_orders = self.filtered('x_studio_is_repair_order')
-        if repair_orders:
-            repair_orders.action_lock()
+        # Skip auto-lock when confirming the empty SO created by industry_fsm_stock so that
+        # products added via the FSM catalog afterward can still trigger _action_launch_stock_rule.
+        # A locked SO causes that method to skip procurement entirely (locked check at line 1).
+        if not self.env.context.get('fsm_create_sale_order'):
+            repair_orders = self.filtered('x_studio_is_repair_order')
+            if repair_orders:
+                repair_orders.action_lock()
         return res
 
     def action_request_re_estimate(self):

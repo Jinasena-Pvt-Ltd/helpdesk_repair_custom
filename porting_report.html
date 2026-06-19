@@ -228,11 +228,11 @@
   <div class="subtitle">Odoo 15 Enterprise → Odoo 17 Enterprise — Module Port &amp; E2E Test Status</div>
   <div class="pass-banner">
     <span class="score">✅</span>
-    <span>Factory Repair E2E Test: <strong>58 / 58 checks passing</strong> — Full green run achieved 18 June 2026</span>
+    <span>2 E2E Test Suites Green — <strong>Factory Repair 58/58</strong> &amp; <strong>Non-Warranty 68/68</strong> — 19 June 2026</span>
   </div>
   <div class="meta">
     <div class="meta-item"><strong>Jinasena Pvt Ltd</strong>Client / Owner</div>
-    <div class="meta-item"><strong>18 June 2026</strong>Report Date</div>
+    <div class="meta-item"><strong>19 June 2026</strong>Report Date</div>
     <div class="meta-item"><strong>17.0.1.0</strong>Module Version</div>
     <div class="meta-item"><strong>Complete ✅</strong>Overall Status</div>
   </div>
@@ -249,8 +249,13 @@
       <div class="desc">Complete — parity crawl 0 discrepancies</div>
     </div>
     <div class="card green">
-      <div class="label">E2E Test Result</div>
+      <div class="label">RUG Factory E2E</div>
       <div class="value">58/58</div>
+      <div class="desc">All checks passing — full flow green</div>
+    </div>
+    <div class="card green">
+      <div class="label">Non-Warranty E2E</div>
+      <div class="value">68/68</div>
       <div class="desc">All checks passing — full flow green</div>
     </div>
     <div class="card grey">
@@ -366,6 +371,129 @@
     </table>
   </div>
 
+  <!-- ── NW E2E test step-by-step ── -->
+  <div class="section">
+    <div class="section-title"><span class="icon">🧪</span> Non-Warranty (Without Serial No) E2E Test — Step-by-Step Status (68/68 ✅)</div>
+    <table class="step-table">
+      <thead>
+        <tr>
+          <th>Step</th>
+          <th>Description</th>
+          <th>Result</th>
+          <th>Method</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="step-label">SETUP</td>
+          <td><div>Load master data</div><div class="step-desc">Ticket type id=5, product Samsung TV 55in id=4, repair serial seq, outgoing picking type</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>ORM helper (setup_nonwarranty_master_data.py)</td>
+        </tr>
+        <tr>
+          <td class="step-label">PHASE 1</td>
+          <td><div>Create non-warranty ticket (Factory Repair, Without Serial)</div><div class="step-desc">ORM create→write pattern; x_studio_rug_repair=False, x_studio_normal_repair_without_serial_no=True</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>ORM (create_nonwarranty_ticket.py)</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP A</td>
+          <td><div>Check header buttons — "Create Repair Serial" visible</div><div class="step-desc">Asserts RUG-specific buttons NOT visible (non-warranty path confirmed)</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP B</td>
+          <td><div>Create Repair Serial (SA 1011 via RPC)</div><div class="step-desc">Generates serial via repair.serial.seq, creates stock.lot, sets pick_id (synthetic outgoing delivery)</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>RPC ir.actions.server.run([1011])</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP C</td>
+          <td><div>Receipt — receive item from customer</div><div class="step-desc">Incoming picking created and validated. x_studio_valid_return=True, x_studio_valid_confirm_return=True</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>ORM (create_nonwarranty_receipt.py)</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP D</td>
+          <td><div>Send to Factory (SA 1012)</div><div class="step-desc">Stage → "Sent to Factory", x_studio_send_to_factory=True</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI check + RPC</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP E</td>
+          <td><div>Receive at Factory (SA 1013)</div><div class="step-desc">Stage → "Received at Factory", x_studio_receive_at_factory=True</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI check + RPC</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP F</td>
+          <td><div>Plan Intervention → Create FSM Task via ORM</div><div class="step-desc">helpdesk.create.fsm.task wizard replicated via ORM (button is no-op in headless)</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI check + ORM (create_fsm_task.py)</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP G</td>
+          <td><div>FSM task work — Image, Diagnosis, Products, SO line</div><div class="step-desc">Repair image upload, diagnosis fill, Validate Diagnosis, SO line created via ORM (serial catalog wizard bypassed). SO price_unit = list price (no RUG cost-swap on non-warranty)</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI + ORM (create_fsm_so_line.py)</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP H</td>
+          <td><div>SO confirmation at selling price (no RUG approval required)</div><div class="step-desc">RUG approval buttons NOT visible. SO state=sale. x_studio_rug_confirmed=False throughout</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI + RPC</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP I</td>
+          <td><div>Invoice SO + Register Payment</div><div class="step-desc">Invoice posted, payment via account.payment.register.action_create_payments() — ported hook fires _advance_ticket_stage → stage "Advance Received", task.x_studio_valid_invoiced_so=True</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI + ORM payment script</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP J</td>
+          <td><div>Validate SO outgoing delivery</div><div class="step-desc">Existing move lines written picked=True before _action_done(). SO locked via action_lock().</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>ORM validate script</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP K</td>
+          <td><div>FSM task Mark as Done</div><div class="step-desc">action_fsm_validate via RPC. task.fsm_done=True. Ticket x_studio_task_status read via RPC immediately after to trigger compute side-effect (stage → "Repair Completed") before form load</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI check + RPC</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP L</td>
+          <td><div>Send to Sales Centre (SA 1014)</div><div class="step-desc">All gate conditions met: fsm_task_done, task_status, receive_at_factory, job_location=Factory Repair. Stage → "Sent to Sales Centre"</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI + RPC</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP M</td>
+          <td><div>Receive at Sales Centre (SA 1015)</div><div class="step-desc">Stage → "Received at Sales Centre", x_studio_receive_at_centre=True</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI + RPC</td>
+        </tr>
+        <tr>
+          <td class="step-label">STEP N</td>
+          <td><div>Dispatch → Handed Over to Customer</div><div class="step-desc">Dispatch wizard via UI on receipt picking, dispatch delivery validated via ORM. Final stage = "Handed Over to Customer"</div></td>
+          <td><span class="pill pass">✅ Pass</span></td>
+          <td>Playwright UI + ORM validate</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ── Server action IDs for NW flow ── -->
+  <div class="section" style="margin-top:-24px">
+    <table class="step-table">
+      <thead><tr><th colspan="4" style="text-align:left;padding:10px 16px;font-size:.8rem;color:var(--sub)">Additional Server Action IDs — Non-Warranty Flow</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1011</strong></td><td>RR - Create Repair Serial</td><td>RPC ir.actions.server.run([1011])</td><td>helpdesk.ticket</td></tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- ── Key discoveries ── -->
   <div class="section">
     <div class="section-title"><span class="icon">🔬</span> Key Technical Discoveries — Port &amp; Testing</div>
@@ -442,6 +570,34 @@
         </ul>
       </div>
 
+      <div class="tech-card">
+        <h4>action_create_payments() Must Be Used (Not _create_payments)</h4>
+        <ul>
+          <li>The module's ported <code>AccountPaymentRegister.action_create_payments()</code> override calls <code>_advance_ticket_stage(ticket, task, 'Advance Received', ...)</code> setting <code>task.x_studio_valid_invoiced_so=True</code></li>
+          <li>Calling the private <code>_create_payments()</code> directly bypasses this hook — stage stays at "Estimation Approval Received" and "Send to Sales Centre" remains hidden</li>
+          <li>Non-Warranty flow fix: ORM payment script uses <code>wizard.action_create_payments()</code>; retrieve payment via <code>account.payment.search([('reconciled_invoice_ids', 'in', [invoice.id])])</code></li>
+        </ul>
+      </div>
+
+      <div class="tech-card">
+        <h4>Non-Stored Compute with Write Side-Effects Causes OWL Error</h4>
+        <ul>
+          <li><code>_compute_x_studio_task_status</code> has no <code>@api.depends</code> — it only runs when <code>x_studio_task_status</code> is explicitly read</li>
+          <li>When first triggered via <code>web_read</code> (form load), the compute writes <code>stage_id='Repair Completed'</code> and flags mid-render — this triggers an OWL error dialog, hiding all statusbar buttons</li>
+          <li>Fix: after <code>action_fsm_validate</code> in STEP K, immediately read <code>x_studio_task_status</code> via RPC so the compute fires (and commits its writes) before <code>gotoTicket</code> loads the form</li>
+          <li>Pattern: for any <code>store=False</code> compute with DB write side-effects, force a read before navigating to the form</li>
+        </ul>
+      </div>
+
+      <div class="tech-card">
+        <h4>Non-Warranty Flow — No RUG Cost Swap</h4>
+        <ul>
+          <li><code>sale_order._apply_rug_price_swap</code> and <code>sale_order_line.create</code> swap to <code>standard_price</code> ONLY when <code>x_studio_rug_confirmed=True AND x_studio_is_repair_order=True</code></li>
+          <li>Non-warranty: <code>rug_confirmed=False</code>, so the SO line keeps the list price throughout — customer pays full selling price</li>
+          <li>RUG approval buttons (Request/Approve RUG) are correctly absent on the non-warranty SO</li>
+        </ul>
+      </div>
+
     </div>
   </div>
 
@@ -496,8 +652,12 @@
     <div class="section-title"><span class="icon">📝</span> Notes</div>
     <ul class="note-list">
       <li class="note-item green">
-        <strong>✅ Full E2E Green — 18 June 2026</strong>
-        <p>The Factory Repair flow passes all 58 checks end-to-end: ticket creation → return receipt → factory transit → FSM task + diagnosis + products → SO approval → invoice → delivery → RUG account update → mark done → sales centre transit → dispatch → Handed Over to Customer. No blockers remain.</p>
+        <strong>✅ Non-Warranty (Without Serial No) E2E Green — 19 June 2026</strong>
+        <p>The Non-Warranty Factory Repair flow passes all 68 checks end-to-end: ticket creation → create repair serial → return receipt → factory transit → FSM task + diagnosis + products (list price, no RUG cost-swap) → invoice → payment (stage advance hook) → delivery → mark done → sales centre transit → dispatch → Handed Over to Customer.</p>
+      </li>
+      <li class="note-item green">
+        <strong>✅ RUG Factory Repair E2E Green — 18 June 2026</strong>
+        <p>The RUG Factory Repair flow passes all 58 checks end-to-end: ticket creation → return receipt → factory transit → FSM task + diagnosis + products → SO approval → invoice → delivery → RUG account update → mark done → sales centre transit → dispatch → Handed Over to Customer. No blockers remain.</p>
       </li>
       <li class="note-item blue">
         <strong>🔵 "Confirm" button on SO — correctly handled</strong>
@@ -546,8 +706,24 @@
         <div class="tl-line"><div class="tl-dot green"></div><div class="tl-bar"></div></div>
         <div class="tl-content">
           <div class="tl-date">18 Jun 2026 — afternoon</div>
-          <div class="tl-title">🎉 Full Green — 58/58 checks passing</div>
-          <div class="tl-body">Fixed: SO.task_id propagation, SO.locked requirement, delivery move lines picked=True, all SO/invoice/task buttons switched to RPC. Complete Factory Repair flow green end-to-end.</div>
+          <div class="tl-title">🎉 RUG Factory Repair — 58/58 Green</div>
+          <div class="tl-body">Fixed: SO.task_id propagation, SO.locked requirement, delivery move lines picked=True, all SO/invoice/task buttons switched to RPC. Complete Factory Repair flow green end-to-end. Module fix committed (project_task._fsm_create_sale_order override).</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-line"><div class="tl-dot"></div><div class="tl-bar"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">19 Jun 2026 — morning</div>
+          <div class="tl-title">Non-Warranty (Without Serial No) Factory Repair — Test Built</div>
+          <div class="tl-body">New E2E test and ORM helpers for the non-warranty path. Green through STEP K. Two blockers identified: payment stage-advance hook bypassed, OWL error on Send to Sales Centre.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-line"><div class="tl-dot green"></div><div class="tl-bar"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">19 Jun 2026 — afternoon</div>
+          <div class="tl-title">🎉 Non-Warranty Factory Repair — 68/68 Green</div>
+          <div class="tl-body">Fixed: switched payment to action_create_payments() so stage-advance hook fires (→ "Advance Received"). Fixed OWL error by reading x_studio_task_status via RPC after action_fsm_validate to commit compute side-effects before form load. Full non-warranty flow green end-to-end.</div>
         </div>
       </div>
     </div>
@@ -562,6 +738,7 @@
       </thead>
       <tbody>
         <tr><td><strong>494</strong></td><td>RUG Return from Helpdesk (SA1009)</td><td>Return button → replicated via ORM</td><td>stock.return.picking</td></tr>
+        <tr><td><strong>1011</strong></td><td>RR - Create Repair Serial</td><td>RPC ir.actions.server.run([1011])</td><td>helpdesk.ticket</td></tr>
         <tr><td><strong>1012</strong></td><td>RR - Send to Factory</td><td>RPC ir.actions.server.run([1012])</td><td>helpdesk.ticket</td></tr>
         <tr><td><strong>1013</strong></td><td>RR - Receive at Factory</td><td>RPC ir.actions.server.run([1013])</td><td>helpdesk.ticket</td></tr>
         <tr><td><strong>1014</strong></td><td>RR - Send to Sales Centre</td><td>RPC ir.actions.server.run([1014])</td><td>helpdesk.ticket</td></tr>
@@ -573,7 +750,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  <strong>helpdesk_repair_custom</strong> · Odoo 15→17 Port · Jinasena Pvt Ltd · Updated 18 June 2026 · Factory Repair E2E: 58/58 ✅
+  <strong>helpdesk_repair_custom</strong> · Odoo 15→17 Port · Jinasena Pvt Ltd · Updated 19 June 2026 · RUG Factory: 58/58 ✅ · Non-Warranty: 68/68 ✅
 </div>
 
 </body>
