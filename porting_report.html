@@ -228,7 +228,7 @@
   <div class="subtitle">Odoo 15 Enterprise → Odoo 17 Enterprise — Module Port &amp; E2E Test Status</div>
   <div class="pass-banner">
     <span class="score">✅</span>
-    <span>3 E2E Test Suites Green — <strong>Factory Repair 58/58</strong> &amp; <strong>Non-Warranty (Without Serial) 68/68</strong> &amp; <strong>Non-Warranty (With Serial) 69/69</strong> — 19 June 2026</span>
+    <span>4 E2E Test Suites Green — <strong>Factory Repair 58/58</strong> &amp; <strong>Non-Warranty (Without Serial) 68/68</strong> &amp; <strong>Non-Warranty (With Serial) 69/69</strong> &amp; <strong>External (Under Warranty) 73/73</strong> — 19 June 2026</span>
   </div>
   <div class="meta">
     <div class="meta-item"><strong>Jinasena Pvt Ltd</strong>Client / Owner</div>
@@ -262,6 +262,11 @@
       <div class="label">Non-Warranty (With Serial) E2E</div>
       <div class="value">69/69</div>
       <div class="desc">All checks passing — full flow green, first run</div>
+    </div>
+    <div class="card green">
+      <div class="label">External (Under Warranty) E2E</div>
+      <div class="value">73/73</div>
+      <div class="desc">All checks passing — rug_confirmed=False, regular payment path</div>
     </div>
     <div class="card grey">
       <div class="label">Module Files</div>
@@ -657,6 +662,10 @@
     <div class="section-title"><span class="icon">📝</span> Notes</div>
     <ul class="note-list">
       <li class="note-item green">
+        <strong>✅ External (Under Warranty, not RUG) E2E Green — 19 June 2026</strong>
+        <p>The External Factory Repair flow (ticket type: <code>x_studio_rug=True</code>, <code>x_studio_rug_confirmed=False</code>) passes all 73 checks end-to-end. Key differences from the RUG flow: no "Request/Approve RUG" buttons, no "Update RUG Account" step, invoice is posted directly, and the dispatch gate uses the regular <code>x_studio_so_fully_paid</code> path (all invoices paid) rather than the RUG account update path. Bugs fixed during development: (1) replaced removed O15 <code>sale.order.action_invoice_create</code> with <code>_create_invoices()</code> via Python helper; (2) replaced private-method <code>stock.picking._action_done</code> RPC (AccessError) with Python helper; (3) <code>x_studio_fsm_task_done</code> is a field on <code>helpdesk.ticket</code>, not <code>project.task</code> — reads correctly via ticket RPC; (4) <code>validate_dispatch_picking.py</code> updated to detect serial already at destination and use same-location source/dest to avoid "serial already assigned" ValidationError.</p>
+      </li>
+      <li class="note-item green">
         <strong>✅ Non-Warranty (With Serial No) E2E Green — 19 June 2026</strong>
         <p>The Non-Warranty (With Serial No) Factory Repair flow passes all 69 checks end-to-end on the first run. Key differences from the Without-Serial flow: (1) customer's pre-existing serial (stock.lot) is set at ticket creation via write(), which auto-triggers <code>_sync_serial_fields()</code> setting <code>x_studio_sn_updated=True</code> and <code>x_studio_pick_id</code> to the original delivery — no "Create Repair Serial" SA needed; (2) receipt uses the original outgoing delivery as reference; (3) "Update Serial" button correctly hidden since sn_updated=True already. New helpers: <code>setup_withserial_master_data.py</code>, <code>create_withserial_ticket.py</code>, <code>create_withserial_receipt.py</code>.</p>
       </li>
@@ -736,11 +745,19 @@
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-line"><div class="tl-dot green"></div></div>
+        <div class="tl-line"><div class="tl-dot green"></div><div class="tl-bar"></div></div>
         <div class="tl-content">
           <div class="tl-date">19 Jun 2026 — evening</div>
           <div class="tl-title">🎉 Non-Warranty (With Serial No) Factory Repair — 69/69 Green (first run)</div>
           <div class="tl-body">Deep-crawled With-Serial flow differences, wrote 3 new ORM helpers + test. Key insight: write()ing x_studio_serial_no auto-triggers _sync_serial_fields() → x_studio_sn_updated=True + x_studio_pick_id set; no "Update Serial" SA needed. Receipt uses original customer delivery as reference. 69/69 green first run, no fixes required.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-line"><div class="tl-dot green"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">19 Jun 2026 — late</div>
+          <div class="tl-title">🎉 External (Under Warranty, not RUG) Factory Repair — 73/73 Green</div>
+          <div class="tl-body">Fourth E2E test suite completed. Fixed 4 issues in the test harness: (1) replaced removed O15 action_invoice_create with _create_invoices() ORM helper; (2) replaced private-method _action_done RPC with Python helper; (3) x_studio_fsm_task_done read correctly on helpdesk.ticket not project.task; (4) validate_dispatch_picking.py updated with actual-quant-location fallback to avoid serial-already-assigned when SO delivery already moved item to customer. Also hardened setup_withserial_master_data.py to cancel open pickings and reset serial quant to customer location between runs.</div>
         </div>
       </div>
     </div>
@@ -768,7 +785,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  <strong>helpdesk_repair_custom</strong> · Odoo 15→17 Port · Jinasena Pvt Ltd · Updated 19 June 2026 · RUG Factory: 58/58 ✅ · Non-Warranty (Without Serial): 68/68 ✅ · Non-Warranty (With Serial): 69/69 ✅
+  <strong>helpdesk_repair_custom</strong> · Odoo 15→17 Port · Jinasena Pvt Ltd · Updated 19 June 2026 · RUG Factory: 58/58 ✅ · Non-Warranty (Without Serial): 68/68 ✅ · Non-Warranty (With Serial): 69/69 ✅ · External (Under Warranty): 73/73 ✅
 </div>
 
 </body>

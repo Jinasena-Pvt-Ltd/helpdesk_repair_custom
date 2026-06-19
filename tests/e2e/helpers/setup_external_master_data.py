@@ -1,11 +1,10 @@
 """
-Idempotent setup for "Repair - Not Under Warranty (With Serial No)" factory test.
+Idempotent setup for "Repair - Under Warranty - External not RUG" factory test.
 
 Creates / ensures:
-  - Ticket type with x_studio_with_serial_no=True
-  - Product: Samsung TV 55in (id=4, tracking=serial, list_price>=100, invoice_policy=order)
-  - A customer stock.lot (serial) for that product
-  - A done outgoing sale delivery for that serial (so Update Serial SA can find it)
+  - Ticket type with x_studio_rug=True, x_studio_rug_confirmed=False
+  - Product: Samsung TV 55in (id=4, serial tracking, list_price>=100, invoice_policy=order)
+  - A customer stock.lot (serial) with a done outgoing delivery
   - User 2 virtual/source locations
   - Factory location
 
@@ -20,23 +19,22 @@ config.parse_config(['-c', '/etc/odoo/odoo.conf'])
 with odoo.registry('odoo17').cursor() as cr:
     env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})
 
-    # 1. Ticket type
-    ws_type = env['helpdesk.ticket.type'].search([
-        ('x_studio_rug', '=', False),
-        ('x_studio_with_serial_no', '=', True),
-        ('x_studio_without_serial_no', '=', False),
+    # 1. Ticket type: rug=True, rug_confirmed=False
+    ext_type = env['helpdesk.ticket.type'].search([
+        ('x_studio_rug', '=', True),
+        ('x_studio_rug_confirmed', '=', False),
     ], limit=1)
-    if not ws_type:
-        ws_type = env['helpdesk.ticket.type'].create({
-            'name': 'Repair - Not Under Warranty (With Serial No)',
-            'x_studio_rug': False,
+    if not ext_type:
+        ext_type = env['helpdesk.ticket.type'].create({
+            'name': 'Repair - Under Warranty -  External not RUG',
+            'x_studio_rug': True,
             'x_studio_rug_confirmed': False,
-            'x_studio_with_serial_no': True,
+            'x_studio_with_serial_no': False,
             'x_studio_without_serial_no': False,
         })
-        print(f'  Created ticket type id={ws_type.id}', file=sys.stderr)
+        print(f'  Created ticket type id={ext_type.id}', file=sys.stderr)
     else:
-        print(f'  Ticket type id={ws_type.id} already exists', file=sys.stderr)
+        print(f'  Ticket type id={ext_type.id} already exists: "{ext_type.name}"', file=sys.stderr)
 
     # 2. Product (Samsung TV 55in, id=4)
     product = env['product.product'].browse(4)
@@ -59,8 +57,8 @@ with odoo.registry('odoo17').cursor() as cr:
 
     # 4. User 2 locations
     user = env['res.users'].browse(2)
-    wh_stock = env['stock.location'].browse(8)   # WH/Stock
-    cust_loc = env['stock.location'].browse(5)   # Partners/Customers
+    wh_stock = env['stock.location'].browse(8)
+    cust_loc = env['stock.location'].browse(5)
     if not user.x_studio_virtual_location or user.x_studio_virtual_location.id != 8:
         user.write({'x_studio_virtual_location': wh_stock.id})
     if not user.x_studio_source_location or user.x_studio_source_location.id != 5:
@@ -78,14 +76,9 @@ with odoo.registry('odoo17').cursor() as cr:
         })
         print(f'  Created factory location id={factory_loc.id}', file=sys.stderr)
 
-    # 6. Create a customer serial (stock.lot) if none exists with a proper delivery
-    #    The Update Serial SA needs: stock.move.line where product=4, lot=our lot,
-    #    picking_code='outgoing', location_dest_id=customer_loc.id
-    #    AND picking.origin matches a sale.order name.
-
+    # 6. Ensure a done outgoing delivery to customer with a serial for product 4
     customer_loc = env['stock.location'].search([('usage', '=', 'customer')], limit=1)
 
-    # Check if we already have a suitable lot+delivery
     existing_ml = env['stock.move.line'].search([
         ('product_id', '=', 4),
         ('picking_code', '=', 'outgoing'),
@@ -97,44 +90,58 @@ with odoo.registry('odoo17').cursor() as cr:
     if existing_ml:
         lot = existing_ml.lot_id
         orig_pick = existing_ml.picking_id
-        print(f'  Using existing lot id={lot.id} "{lot.name}" from picking {orig_pick.name}', file=sys.stderr)
+        print(f'  Found existing lot id={lot.id} "{lot.name}" from picking {orig_pick.name}', file=sys.stderr)
 
-        # Reset: cancel open pickings for this lot and ensure serial is at customer location
-        open_picks = env['stock.picking'].search([
-            ('move_line_ids.lot_id', '=', lot.id),
-            ('state', 'in', ('draft', 'confirmed', 'assigned', 'waiting')),
-        ])
-        for p in open_picks:
-            print(f'  Cancelling open picking {p.name} (state={p.state})', file=sys.stderr)
-            p.action_cancel()
-        cr.commit()
-
-        # Check if serial is at customer location; if not, redeliver it there
-        cust_quant = env['stock.quant'].search([
-            ('lot_id', '=', lot.id),
-            ('location_id', '=', customer_loc.id),
-            ('quantity', '>', 0),
+        # Ensure the lot has inventory at the customer location (needed for receipt to work).
+        # If it's currently in WH/Stock (returned by a previous test), deliver it back to customer.
+        quant_at_customer = env['stock.quant'].search([
+            ('lot_id', '=', lot.id), ('location_id', '=', customer_loc.id), ('quantity', '>', 0)
         ], limit=1)
-        if not cust_quant:
-            # Force quant: clear all quants for this lot and place 1 at customer location
-            env['stock.quant'].search([('lot_id', '=', lot.id)]).sudo().unlink()
-            env['stock.quant'].create({
-                'product_id': lot.product_id.id,
-                'lot_id': lot.id,
-                'location_id': customer_loc.id,
-                'quantity': 1.0,
+        quant_in_stock = env['stock.quant'].search([
+            ('lot_id', '=', lot.id), ('location_id.usage', '=', 'internal'), ('quantity', '>', 0)
+        ], limit=1)
+        if not quant_at_customer and quant_in_stock:
+            print(f'  Lot is at {quant_in_stock.location_id.name}, creating delivery to customer to restore state', file=sys.stderr)
+            delivery_type = env['stock.picking.type'].search([
+                ('code', '=', 'outgoing'), ('company_id', '=', 1)
+            ], limit=1)
+            restore_pick = env['stock.picking'].create({
+                'picking_type_id': delivery_type.id,
+                'location_id': quant_in_stock.location_id.id,
+                'location_dest_id': customer_loc.id,
                 'company_id': 1,
             })
+            restore_move = env['stock.move'].create({
+                'picking_id': restore_pick.id,
+                'name': 'Restore to customer',
+                'product_id': product.id,
+                'location_id': quant_in_stock.location_id.id,
+                'location_dest_id': customer_loc.id,
+                'product_uom_qty': 1.0,
+                'product_uom': product.uom_id.id,
+                'state': 'assigned',
+                'company_id': 1,
+            })
+            env['stock.move.line'].create({
+                'move_id': restore_move.id,
+                'picking_id': restore_pick.id,
+                'picking_type_id': delivery_type.id,
+                'product_id': product.id,
+                'product_uom_id': product.uom_id.id,
+                'location_id': quant_in_stock.location_id.id,
+                'location_dest_id': customer_loc.id,
+                'lot_id': lot.id,
+                'quantity': 1.0,
+                'picked': True,
+                'company_id': 1,
+            })
+            restore_pick._action_done()
             cr.commit()
-            print(f'  Reset quant: serial now at customer location', file=sys.stderr)
+            print(f'  Delivered lot back to customer via {restore_pick.name}', file=sys.stderr)
         else:
-            print(f'  Serial already at customer location — no reset needed', file=sys.stderr)
+            print(f'  Lot already at customer location (qty={quant_at_customer.quantity if quant_at_customer else 0})', file=sys.stderr)
     else:
-        # Create a sale order
-        pricelist = env['product.pricelist'].search([('currency_id.name', '=', 'USD')], limit=1)
-        if not pricelist:
-            pricelist = env['product.pricelist'].search([], limit=1)
-
+        pricelist = env['product.pricelist'].search([], limit=1)
         so = env['sale.order'].create({
             'partner_id': partner.id,
             'pricelist_id': pricelist.id if pricelist else False,
@@ -149,21 +156,20 @@ with odoo.registry('odoo17').cursor() as cr:
         so.action_confirm()
         cr.commit()
 
-        # Create stock.lot for this delivery
         lot = env['stock.lot'].create({
-            'name': 'CUST-TV-WS-001',
+            'name': 'CUST-TV-EXT-001',
             'product_id': product.id,
             'company_id': 1,
         })
 
-        # Find the SO delivery
-        delivery = so.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing' and p.state not in ('done', 'cancel'))
+        delivery = so.picking_ids.filtered(
+            lambda p: p.picking_type_code == 'outgoing' and p.state not in ('done', 'cancel')
+        )
         if not delivery:
             print(json.dumps({'error': 'No outgoing delivery created for SO'}))
             sys.exit(1)
         delivery = delivery[0]
 
-        # Assign lot and validate
         for ml in delivery.move_line_ids:
             ml.write({'lot_id': lot.id, 'quantity': 1.0, 'picked': True})
         if not delivery.move_line_ids:
@@ -184,12 +190,12 @@ with odoo.registry('odoo17').cursor() as cr:
         delivery._action_done()
         cr.commit()
         orig_pick = delivery
-        print(f'  Created lot id={lot.id} "{lot.name}" via SO {so.name} delivery {orig_pick.name}', file=sys.stderr)
+        print(f'  Created lot id={lot.id} via SO {so.name} delivery {orig_pick.name}', file=sys.stderr)
 
     cr.commit()
     print(json.dumps({
-        'wsTicketTypeId': ws_type.id,
-        'wsTicketTypeName': ws_type.name,
+        'extTicketTypeId': ext_type.id,
+        'extTicketTypeName': ext_type.name,
         'productId': product.id,
         'productName': product.name,
         'productListPrice': product.lst_price,
