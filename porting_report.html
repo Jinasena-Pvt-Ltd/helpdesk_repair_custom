@@ -228,7 +228,7 @@
   <div class="subtitle">Odoo 15 Enterprise → Odoo 17 Enterprise — Module Port &amp; E2E Test Status</div>
   <div class="pass-banner">
     <span class="score">✅</span>
-    <span>2 E2E Test Suites Green — <strong>Factory Repair 58/58</strong> &amp; <strong>Non-Warranty 68/68</strong> — 19 June 2026</span>
+    <span>3 E2E Test Suites Green — <strong>Factory Repair 58/58</strong> &amp; <strong>Non-Warranty (Without Serial) 68/68</strong> &amp; <strong>Non-Warranty (With Serial) 69/69</strong> — 19 June 2026</span>
   </div>
   <div class="meta">
     <div class="meta-item"><strong>Jinasena Pvt Ltd</strong>Client / Owner</div>
@@ -254,9 +254,14 @@
       <div class="desc">All checks passing — full flow green</div>
     </div>
     <div class="card green">
-      <div class="label">Non-Warranty E2E</div>
+      <div class="label">Non-Warranty (Without Serial) E2E</div>
       <div class="value">68/68</div>
       <div class="desc">All checks passing — full flow green</div>
+    </div>
+    <div class="card green">
+      <div class="label">Non-Warranty (With Serial) E2E</div>
+      <div class="value">69/69</div>
+      <div class="desc">All checks passing — full flow green, first run</div>
     </div>
     <div class="card grey">
       <div class="label">Module Files</div>
@@ -652,6 +657,10 @@
     <div class="section-title"><span class="icon">📝</span> Notes</div>
     <ul class="note-list">
       <li class="note-item green">
+        <strong>✅ Non-Warranty (With Serial No) E2E Green — 19 June 2026</strong>
+        <p>The Non-Warranty (With Serial No) Factory Repair flow passes all 69 checks end-to-end on the first run. Key differences from the Without-Serial flow: (1) customer's pre-existing serial (stock.lot) is set at ticket creation via write(), which auto-triggers <code>_sync_serial_fields()</code> setting <code>x_studio_sn_updated=True</code> and <code>x_studio_pick_id</code> to the original delivery — no "Create Repair Serial" SA needed; (2) receipt uses the original outgoing delivery as reference; (3) "Update Serial" button correctly hidden since sn_updated=True already. New helpers: <code>setup_withserial_master_data.py</code>, <code>create_withserial_ticket.py</code>, <code>create_withserial_receipt.py</code>.</p>
+      </li>
+      <li class="note-item green">
         <strong>✅ Non-Warranty (Without Serial No) E2E Green — 19 June 2026</strong>
         <p>The Non-Warranty Factory Repair flow passes all 68 checks end-to-end: ticket creation → create repair serial → return receipt → factory transit → FSM task + diagnosis + products (list price, no RUG cost-swap) → invoice → payment (stage advance hook) → delivery → mark done → sales centre transit → dispatch → Handed Over to Customer.</p>
       </li>
@@ -722,8 +731,16 @@
         <div class="tl-line"><div class="tl-dot green"></div><div class="tl-bar"></div></div>
         <div class="tl-content">
           <div class="tl-date">19 Jun 2026 — afternoon</div>
-          <div class="tl-title">🎉 Non-Warranty Factory Repair — 68/68 Green</div>
+          <div class="tl-title">🎉 Non-Warranty (Without Serial) Factory Repair — 68/68 Green</div>
           <div class="tl-body">Fixed: switched payment to action_create_payments() so stage-advance hook fires (→ "Advance Received"). Fixed OWL error by reading x_studio_task_status via RPC after action_fsm_validate to commit compute side-effects before form load. Full non-warranty flow green end-to-end.</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-line"><div class="tl-dot green"></div></div>
+        <div class="tl-content">
+          <div class="tl-date">19 Jun 2026 — evening</div>
+          <div class="tl-title">🎉 Non-Warranty (With Serial No) Factory Repair — 69/69 Green (first run)</div>
+          <div class="tl-body">Deep-crawled With-Serial flow differences, wrote 3 new ORM helpers + test. Key insight: write()ing x_studio_serial_no auto-triggers _sync_serial_fields() → x_studio_sn_updated=True + x_studio_pick_id set; no "Update Serial" SA needed. Receipt uses original customer delivery as reference. 69/69 green first run, no fixes required.</div>
         </div>
       </div>
     </div>
@@ -743,6 +760,7 @@
         <tr><td><strong>1013</strong></td><td>RR - Receive at Factory</td><td>RPC ir.actions.server.run([1013])</td><td>helpdesk.ticket</td></tr>
         <tr><td><strong>1014</strong></td><td>RR - Send to Sales Centre</td><td>RPC ir.actions.server.run([1014])</td><td>helpdesk.ticket</td></tr>
         <tr><td><strong>1015</strong></td><td>RR - Receive at Sales Centre</td><td>RPC ir.actions.server.run([1015])</td><td>helpdesk.ticket</td></tr>
+        <tr><td><strong>1020</strong></td><td>RR - Update Serial (auto-populate product from lot)</td><td>Visible when x_studio_sn_updated=False; auto-fired by write() hook in ORM flow</td><td>helpdesk.ticket</td></tr>
       </tbody>
     </table>
   </div>
@@ -750,7 +768,7 @@
 </div><!-- /container -->
 
 <div class="footer">
-  <strong>helpdesk_repair_custom</strong> · Odoo 15→17 Port · Jinasena Pvt Ltd · Updated 19 June 2026 · RUG Factory: 58/58 ✅ · Non-Warranty: 68/68 ✅
+  <strong>helpdesk_repair_custom</strong> · Odoo 15→17 Port · Jinasena Pvt Ltd · Updated 19 June 2026 · RUG Factory: 58/58 ✅ · Non-Warranty (Without Serial): 68/68 ✅ · Non-Warranty (With Serial): 69/69 ✅
 </div>
 
 </body>
