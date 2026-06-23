@@ -69,6 +69,14 @@ class ProjectTask(models.Model):
             total_paid = sum(i.amount_total - i.amount_residual for i in invoices)
             task.x_studio_so_fully_paid = bool(invoices) and total_paid >= so.amount_total - 0.01
 
+    def action_fsm_validate(self, stop_running_timers=False):
+        # Pass a context flag so our sale.order.action_confirm override can
+        # recognise FSM's auto-confirm call and skip it for repair orders.
+        # Repair SOs must be confirmed manually after customer approval.
+        return super(
+            ProjectTask, self.with_context(fsm_validate_auto_confirm=True)
+        ).action_fsm_validate(stop_running_timers)
+
     def _fsm_create_sale_order(self):
         # industry_fsm_sale creates the SO but never sets SO.task_id.
         # SO.task_id is required for the x_studio_rug_confirmed related-field chain:
@@ -123,7 +131,10 @@ class ProjectTask(models.Model):
             hide = False
             if task.sale_order_id:
                 so = task.sale_order_id
-                if so.state != 'cancel':
+                if so.x_studio_is_repair_order and so.state in ('draft', 'sent'):
+                    # Repair SO must be confirmed by the customer before task can be done
+                    hide = True
+                elif so.state != 'cancel':
                     outgoing = so.picking_ids.filtered(lambda p: p.picking_type_code == 'outgoing')
                     if outgoing:
                         if not all(p.state == 'done' for p in outgoing):

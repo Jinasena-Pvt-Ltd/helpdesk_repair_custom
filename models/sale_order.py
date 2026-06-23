@@ -108,12 +108,12 @@ class SaleOrder(models.Model):
             task[task_flag] = True
 
     def action_confirm(self):
-        # When industry_fsm auto-confirms the SO it created, keep repair SOs in draft
-        # so the customer can review the estimate before it is confirmed.
-        # The ticket will advance to "Estimation Sent to Customer" when the SO is sent by
-        # email (state → 'sent'), and to "Estimation Approval Received" on manual confirm
-        # (state → 'sale') — both wired in the write() hook below.
-        if self.env.context.get('fsm_create_sale_order'):
+        # Repair SOs must stay in draft until the customer approves the estimate:
+        #   draft → (Send by Email) → sent → ticket "Estimation Sent to Customer"
+        #   sent  → (Confirm)       → sale → ticket "Estimation Approval Received"
+        # Block FSM's auto-confirm from both SO creation and task validation paths.
+        if self.env.context.get('fsm_create_sale_order') or \
+                self.env.context.get('fsm_validate_auto_confirm'):
             repair_orders = self.filtered('x_studio_is_repair_order')
             non_repair = self - repair_orders
             res = super(SaleOrder, non_repair).action_confirm() if non_repair else True
