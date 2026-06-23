@@ -177,6 +177,7 @@
 
                 <!-- sale_order_id: override attrs set by helpdesk_sale -->
                 <xpath expr="//field[@name='sale_order_id']" position="attributes">
+                    <attribute name="string">Sales Order</attribute>
                     <attribute name="readonly">x_studio_rug_repair or x_studio_normal_repair_with_serial_no or x_studio_normal_repair_without_serial_no or not ticket_type_id</attribute>
                     <attribute name="invisible">x_studio_normal_repair_without_serial_no</attribute>
                     <attribute name="domain">[["partner_id","=",partner_id]]</attribute>
@@ -495,12 +496,6 @@
                             invisible="not x_studio_cancel2_stage_ok or x_studio_cancelled_2 or not ticket_type_id or not x_studio_return_receipt_location or not x_studio_repair_reason or not partner_id or not x_studio_serial_no or not product_id"/>
                 </xpath>
 
-                <!-- Update Serial button (before first Receipt button) -->
-                <xpath expr="//button[@name='%(stock.act_stock_return_picking)d']" position="before">
-                    <button type="action" name="%(helpdesk_repair_custom.action_update_serial)d"
-                            string="Update Serial" class="btn-primary"
-                            invisible="x_studio_normal_repair_without_serial_no or not x_studio_serial_no or (x_studio_normal_repair_with_serial_no and x_studio_sn_updated) or (x_studio_rug_repair and x_studio_sn_updated)"/>
-                </xpath>
 
                 <!-- Receipt (first, for RUG / normal with serial) -->
                 <xpath expr="//header/field[@name='stage_id']" position="after">
@@ -540,6 +535,50 @@
                 </xpath>
 
             </data>
+        </field>
+    </record>
+
+    <!-- helpdesk_sale adds sale_order_id with invisible="1". Override both group-gated
+         instances so the field is visible for repair tickets (hidden only for
+         without-serial repairs where it doesn't apply). -->
+    <record id="helpdesk_ticket_sale_order_visible" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.sale.order.visible</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk_sale.helpdesk_ticket_view_form_inherit_helpdesk_invoicing"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='sale_order_id'][@groups='!sales_team.group_sale_salesman']" position="attributes">
+                <attribute name="invisible">x_studio_normal_repair_without_serial_no</attribute>
+                <attribute name="readonly">x_studio_rug_repair or not ticket_type_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='sale_order_id'][@groups='sales_team.group_sale_salesman']" position="attributes">
+                <attribute name="invisible">x_studio_normal_repair_without_serial_no</attribute>
+                <attribute name="readonly">x_studio_rug_repair or not ticket_type_id</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Priority 150 — overrides the Studio view (priority 99) to ensure product_id and
+         sale_order_id are NOT readonly for the with-serial path so that the
+         _onchange_serial_no results are applied live by the client without requiring Save. -->
+    <record id="helpdesk_ticket_serial_onchange_readonly" model="ir.ui.view">
+        <field name="name">helpdesk.ticket.form.serial.onchange.readonly</field>
+        <field name="model">helpdesk.ticket</field>
+        <field name="inherit_id" ref="helpdesk.helpdesk_ticket_view_form"/>
+        <field name="priority">150</field>
+        <field name="arch" type="xml">
+            <!-- product_id: not readonly for with-serial so onchange can populate it live.
+                 x_studio_stage_name != 'New' intentionally omitted — it's absent from default_get
+                 on new records, causing False != 'New' = True, making the field readonly and
+                 discarding the onchange result. Serial's own readonly already blocks selection
+                 when stage != New, so this guard is redundant. -->
+            <xpath expr="//field[@name='product_id']" position="attributes">
+                <attribute name="readonly">x_studio_rug_repair or x_studio_repair_serial_created or not ticket_type_id or x_studio_cancelled</attribute>
+            </xpath>
+            <!-- sale_order_id: not readonly for with-serial so onchange can populate it live -->
+            <xpath expr="//field[@name='sale_order_id']" position="attributes">
+                <attribute name="readonly">x_studio_rug_repair or x_studio_normal_repair_without_serial_no or not ticket_type_id</attribute>
+            </xpath>
         </field>
     </record>
 

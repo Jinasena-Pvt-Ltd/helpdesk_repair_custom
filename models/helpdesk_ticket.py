@@ -575,9 +575,28 @@ class HelpdeskTicket(models.Model):
                 updates['product_id'] = False
         super(HelpdeskTicket, self).write(updates)
 
+    @api.onchange('suitable_product_ids')
+    def onchange_product_id(self):
+        # When a serial is selected, _onchange_serial_no manages product_id directly.
+        # Skip the helpdesk_stock cascade so it doesn't wipe the serial-derived product.
+        if self.x_studio_serial_no:
+            return
+        return super().onchange_product_id()
+
+    @api.depends('partner_id', 'x_studio_serial_no')
+    def _compute_suitable_product_ids(self):
+        """Always include the selected serial's product so the helpdesk_stock
+        cascade (onchange_product_id) never wipes a serial-derived product_id."""
+        super()._compute_suitable_product_ids()
+        for ticket in self:
+            if ticket.x_studio_serial_no and ticket.x_studio_serial_no.product_id:
+                ticket.suitable_product_ids = ticket.suitable_product_ids | ticket.x_studio_serial_no.product_id
+
     @api.onchange('x_studio_serial_no')
     def _onchange_serial_no(self):
-        """Immediately set product/lot from serial for UI feedback before save."""
+        """Immediately set product/lot from serial for UI feedback before save.
+        Also sets x_studio_sn_updated so downstream buttons (Receipt) appear
+        without requiring an explicit Save."""
         for rec in self:
             if rec.x_studio_serial_no:
                 sn = rec.x_studio_serial_no
@@ -604,6 +623,9 @@ class HelpdeskTicket(models.Model):
                         rec.x_studio_pick_id = trans_line.picking_id.id
                 if rec.x_studio_normal_repair_without_serial_no:
                     rec.sale_order_id = False
+                # Mark serial as updated immediately so the Receipt button
+                # becomes visible without requiring an explicit Save.
+                rec.x_studio_sn_updated = True
             else:
                 if rec.x_studio_normal_repair_without_serial_no:
                     rec.sale_order_id = False
@@ -616,6 +638,7 @@ class HelpdeskTicket(models.Model):
                     rec.x_studio_pick_id = 0
                     rec.product_id = False
                     rec.lot_id = False
+                rec.x_studio_sn_updated = False
 
     def _sync_serial_fields(self):
         """Mirror the Update Serial server action: populate product/lot/SO and set sn_updated."""

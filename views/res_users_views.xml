@@ -6,20 +6,13 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='tz']" position="after">
-                <field name="x_studio_virtual_location" string="Virtual Location"
-                       options="{'no_create': true}"
-                       invisible="x_studio_company_id != 1"/>
-                <field name="x_studio_virtual_location_1" string="Virtual Location"
-                       options="{'no_create': true}"
-                       invisible="x_studio_company_id != 2"/>
-                <field name="x_studio_source_location" string="Source Location"
-                       options="{'no_create': true}"
-                       invisible="x_studio_company_id != 1"/>
-                <field name="x_studio_source_location_1" string="Source Location"
-                       options="{'no_create': true}"
-                       invisible="x_studio_company_id != 2"/>
-                <field name="x_studio_company_id" string="Current Company" invisible="1"/>
+            <xpath expr="//page[@name='preferences']" position="inside">
+                <group string="Repair Locations">
+                    <field name="x_studio_virtual_location" string="Virtual Location (Return Location)"
+                           options="{'no_create': true}"/>
+                    <field name="x_studio_source_location" string="Source Location"
+                           options="{'no_create': true}"/>
+                </group>
             </xpath>
             <!-- Stat buttons: Stock Locations and Internal Locations for this user -->
             <xpath expr="//button[@name='action_open_employees']" position="after">
@@ -31,6 +24,22 @@
                         type="action" name="%(helpdesk_repair_custom.action_user_internal_locations)d">
                     <field widget="statinfo" name="x_studio_internal_location_count" string="Internal Locations"/>
                 </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Also add the location fields to the My Profile / Preferences popup
+         (base.view_users_form_simple_modif uses page name 'preferences_page') -->
+    <record id="view_res_users_preferences_custom" model="ir.ui.view">
+        <field name="name">res.users.preferences.custom</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='preferences_page']//field[@name='tz']" position="after">
+                <field name="x_studio_virtual_location" string="Virtual Location (Return Location)"
+                       options="{'no_create': true}"/>
+                <field name="x_studio_source_location" string="Source Location"
+                       options="{'no_create': true}"/>
             </xpath>
         </field>
     </record>

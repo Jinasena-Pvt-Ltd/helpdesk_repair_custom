@@ -227,7 +227,17 @@ if record.id:
 
   seq = env['ir.sequence'].with_context(company_id=company.id).next_by_code('repair.serial.seq')
 
-  rep_serial = env['stock.lot'].create({'name':seq,'product_id':record.product_id.id,'company_id':company.id})
+  # Prefix the serial with the warehouse short code derived from the repair location.
+  wh_prefix = ''
+  repair_loc = record.x_studio_repair_location
+  if repair_loc:
+    wh = repair_loc.warehouse_id
+    if not wh:
+      wh = env['stock.warehouse'].search([('view_location_id', 'parent_of', repair_loc.id)], limit=1)
+    if wh and wh.code:
+      wh_prefix = wh.code + '-'
+
+  rep_serial = env['stock.lot'].create({'name': wh_prefix + seq,'product_id':record.product_id.id,'company_id':company.id})
   record['x_studio_serial_no'] = rep_serial.id
   record['lot_id'] = rep_serial.id
   record['x_studio_repair_serial_created'] = True

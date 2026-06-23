@@ -11,6 +11,11 @@
                 <field name="helpdesk_ticket_id" invisible="1"/>
                 <field name="x_studio_diagnosis_validated" invisible="1"/>
             </xpath>
+            <!-- Hide the FSM timer Start button on repair tickets -->
+            <xpath expr="//button[@name='action_timer_start'][hasclass('btn-primary')]" position="attributes">
+                <attribute name="invisible">helpdesk_ticket_id != False</attribute>
+            </xpath>
+
             <!-- Validate Diagnosis header button -->
             <xpath expr="//header" position="inside">
                 <field name="x_studio_end_quick_repair" invisible="1"/>

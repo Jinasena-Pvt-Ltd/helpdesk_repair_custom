@@ -35,14 +35,9 @@
                        options="{'no_create': true}"
                        invisible="company_id != 2"/>
             </xpath>
-            <xpath expr="//footer/button[@name='create_returns']" position="attributes">
-                <attribute name="invisible">x_studio_repair_rug == True</attribute>
-            </xpath>
-            <xpath expr="//footer/button[@name='create_returns']" position="after">
-                <button type="action" name="%(helpdesk_repair_custom.action_rug_return_from_helpdesk)d"
-                        string="Return" class="btn-primary"
-                        invisible="not ticket_id or x_studio_repair_rug != True"/>
-            </xpath>
+            <!-- Standard create_returns button is used for all repair types including RUG.
+                 The custom Python create_returns override (stock_return_picking.py) handles
+                 ticket linkage and dispatch flags, so no separate RUG-specific button is needed. -->
         </field>
     </record>
 
