@@ -45,6 +45,7 @@
                 <field name="x_studio_ticket_received_at_sales" invisible="1"/>
                 <field name="x_studio_ticket_factory_repair" invisible="1"/>
                 <field name="x_studio_rug_dispatch_ready" invisible="1"/>
+                <field name="x_studio_centre_dispatch_ready" invisible="1"/>
                 <!-- Factory Repair dispatch: requires SO fully paid, received at sales centre -->
                 <button name="action_dispatch_return" type="object" string="Dispatch"
                         class="btn-primary"
@@ -53,6 +54,10 @@
                 <button name="action_dispatch_return" type="object" string="Dispatch to Customer"
                         class="btn-primary"
                         invisible="state != 'done' or not x_studio_location_is_customer or not x_studio_helpdesk_ticket_id or not x_studio_rug_dispatch_ready"/>
+                <!-- Non-RUG Centre-Repair dispatch: repair completed + fully paid, not yet dispatched -->
+                <button name="action_dispatch_return" type="object" string="Dispatch to Customer"
+                        class="btn-primary"
+                        invisible="state != 'done' or not x_studio_location_is_customer or not x_studio_helpdesk_ticket_id or not x_studio_centre_dispatch_ready"/>
             </xpath>
             <!-- Show helpdesk ticket link and source ticket on the picking form body -->
             <xpath expr="//field[@name='location_dest_id']" position="after">

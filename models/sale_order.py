@@ -1,7 +1,11 @@
 import datetime
+import logging
+import traceback
 from collections import defaultdict
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class SaleOrder(models.Model):
@@ -108,22 +112,37 @@ class SaleOrder(models.Model):
             task[task_flag] = True
 
     def action_confirm(self):
-        # Repair SOs must stay in draft until the customer approves the estimate:
-        #   draft → (Send by Email) → sent → ticket "Estimation Sent to Customer"
-        #   sent  → (Confirm)       → sale → ticket "Estimation Approval Received"
-        # Block FSM's auto-confirm from both SO creation and task validation paths.
-        if self.env.context.get('fsm_create_sale_order') or \
-                self.env.context.get('fsm_validate_auto_confirm'):
-            repair_orders = self.filtered('x_studio_is_repair_order')
-            non_repair = self - repair_orders
-            res = super(SaleOrder, non_repair).action_confirm() if non_repair else True
-            return res
+        # Repair SOs must be emailed to the customer first (state→'sent') before they
+        # can be confirmed. ANY call that tries to confirm a repair SO still in 'draft'
+        # is blocked here, regardless of context or caller — all auto-confirm paths fire
+        # from 'draft'. The legitimate manual Confirm happens from 'sent'.
+        #
+        # flush_all() ensures that task_id freshly written in a different/sudo env
+        # (during SO creation) is visible so the repair-SO detection is not fooled.
+        self.env.flush_all()
 
-        for order in self:
+        def _is_repair(o):
+            return bool(o.task_id and o.task_id.helpdesk_ticket_id)
+
+        # TEMPORARY DIAGNOSTIC — log stack for the first draft-repair SO blocked.
+        blocked = self.filtered(lambda o: o.state == 'draft' and _is_repair(o))
+        if blocked:
+            _logger.warning(
+                "REPAIR_SO_DIAG: blocked draft-confirm for %s. task_id=%s ctx=%s\n%s",
+                blocked.mapped('name'),
+                blocked.mapped('task_id'),
+                list(self.env.context.keys()),
+                ''.join(traceback.format_stack()),
+            )
+        to_confirm = self - blocked
+        if not to_confirm:
+            return True
+
+        for order in to_confirm:
             order._check_resupply_warehouse_stock()
-        res = super().action_confirm()
-        # Lock repair SOs after a real (manual) confirm so they can't be modified casually.
-        repair_orders = self.filtered('x_studio_is_repair_order')
+        res = super(SaleOrder, to_confirm).action_confirm()
+        # Lock repair SOs after a real (manual, from 'sent') confirm.
+        repair_orders = to_confirm.filtered(_is_repair)
         if repair_orders:
             repair_orders.action_lock()
         return res

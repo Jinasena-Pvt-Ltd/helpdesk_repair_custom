@@ -53,6 +53,9 @@ class StockPicking(models.Model):
     x_studio_rug_dispatch_ready = fields.Boolean(
         compute='_compute_x_studio_rug_dispatch_ready', store=False,
         string='RUG Dispatch Ready')
+    x_studio_centre_dispatch_ready = fields.Boolean(
+        compute='_compute_x_studio_centre_dispatch_ready', store=False,
+        string='Centre Dispatch Ready')
 
     @api.depends('location_id', 'location_id.usage')
     def _compute_x_studio_location_is_customer(self):
@@ -97,6 +100,34 @@ class StockPicking(models.Model):
                 ticket
                 and ticket.x_studio_rug_repair
                 and ticket.stage_id.name == 'Repair Completed'
+                and not picking.x_studio_is_dispatch
+            )
+
+    @api.depends(
+        'x_studio_helpdesk_ticket_id',
+        'x_studio_helpdesk_ticket_id.x_studio_rug_repair',
+        'x_studio_helpdesk_ticket_id.x_studio_job_location',
+        'x_studio_helpdesk_ticket_id.x_studio_normal_repair_with_serial_no',
+        'x_studio_helpdesk_ticket_id.x_studio_normal_repair_without_serial_no',
+        'x_studio_helpdesk_ticket_id.stage_id.name',
+        'x_studio_is_dispatch',
+        'x_studio_helpdesk_ticket_id.fsm_task_ids.x_studio_so_fully_paid',
+        'x_studio_helpdesk_ticket_id.fsm_task_ids.x_studio_end_quick_repair',
+    )
+    def _compute_x_studio_centre_dispatch_ready(self):
+        for picking in self:
+            ticket = picking.x_studio_helpdesk_ticket_id
+            tasks = ticket.fsm_task_ids if ticket else self.env['project.task']
+            fully_paid = any(
+                t.x_studio_so_fully_paid or t.x_studio_end_quick_repair for t in tasks)
+            picking.x_studio_centre_dispatch_ready = bool(
+                ticket
+                and not ticket.x_studio_rug_repair
+                and ticket.x_studio_job_location != 'Factory Repair'
+                and (ticket.x_studio_normal_repair_with_serial_no
+                     or ticket.x_studio_normal_repair_without_serial_no)
+                and ticket.stage_id.name == 'Repair Completed'
+                and fully_paid
                 and not picking.x_studio_is_dispatch
             )
 

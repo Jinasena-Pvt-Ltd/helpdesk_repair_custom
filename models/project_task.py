@@ -86,6 +86,28 @@ class ProjectTask(models.Model):
         if self.sale_order_id and not self.sale_order_id.task_id:
             self.sale_order_id.task_id = self
 
+    def action_create_invoice(self):
+        # industry_fsm_sale's action_create_invoice auto-confirms any SO in
+        # draft/sent state before opening the invoice wizard. For repair SOs
+        # that should not happen: they must be confirmed manually by the user
+        # after the customer approves the estimate. Skip any repair SO that
+        # hasn't been confirmed yet and surface an error.
+        repair_unconfirmed = self.filtered(
+            lambda t: t.sale_order_id
+            and t.sale_order_id.x_studio_is_repair_order
+            and t.sale_order_id.state in ('draft', 'sent')
+        )
+        if repair_unconfirmed:
+            so_names = ', '.join(repair_unconfirmed.mapped('sale_order_id.name'))
+            from odoo.exceptions import UserError
+            raise UserError(
+                "The following repair Sales Orders have not been confirmed by the "
+                "customer yet: %s\n\nPlease send the quotation to the customer, "
+                "wait for their approval, then click 'Confirm' on the SO before "
+                "creating an invoice." % so_names
+            )
+        return super().action_create_invoice()
+
     def action_validate_diagnosis(self):
         self.ensure_one()
         missing = []

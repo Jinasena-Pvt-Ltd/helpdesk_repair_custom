@@ -1,6 +1,9 @@
 import datetime
+import logging
 from odoo import api, fields, models
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class HelpdeskTicket(models.Model):
@@ -369,7 +372,10 @@ class HelpdeskTicket(models.Model):
                 so = rec.x_studio_sale_order
                 if so.state == 'cancel':
                     task_status = True
-                else:
+                elif so.state == 'sale':
+                    # Only infer completion on a confirmed SO — a sent/draft
+                    # estimate with qty_delivered already set (industry_fsm) must
+                    # not be treated as a completed repair.
                     delivery1 = self.env['stock.picking'].search(
                         [('sale_id', '=', so.id)], limit=1)
                     if delivery1:
@@ -386,6 +392,7 @@ class HelpdeskTicket(models.Model):
                             for line in so.order_line
                             if line.product_uom_qty > 0
                         )
+                # else draft/sent: not complete, leave task_status False
             if task_status and not rec.x_studio_repair_complete_stage_updated:
                 stage_id = rec._get_stage_by_name('Repair Completed')
                 if stage_id:
@@ -701,6 +708,57 @@ class HelpdeskTicket(models.Model):
             for rec in self:
                 rec._sync_user_locations()
         return result
+
+    def web_read(self, specification):
+        """Override to guard against Odoo 17 web_read KeyError on Many2one fields.
+
+        Root cause: self.mapped(field_name) can return a recordset that excludes a
+        corecord id that self.read() returned from DB (ORM cache / compute side-effects
+        diverge). When that happens the many2one_data dict misses the key and raises
+        KeyError. We patch by refreshing the ORM cache for the affected field before
+        the base web_read processes it, ensuring mapped() and read() agree.
+        """
+        from odoo.fields import NewId
+
+        # Build values_list from DB so we know what the real corecord ids are.
+        fields_to_read = list(specification) or ['id']
+        if fields_to_read != ['id']:
+            db_values = self.read(fields_to_read, load=None)
+        else:
+            db_values = None
+
+        # For each many2one field in spec, ensure the ORM cache agrees with the DB.
+        if db_values:
+            m2o_fields = {
+                fname for fname, fspec in specification.items()
+                if self._fields.get(fname) and self._fields[fname].type == 'many2one'
+                and 'fields' in fspec
+            }
+            for fname in m2o_fields:
+                # Collect ids that DB says are set for this field.
+                db_ids = {
+                    row[fname] for row in db_values
+                    if row.get(fname) and not isinstance(row[fname], NewId)
+                }
+                if not db_ids:
+                    continue
+                # What does mapped() see right now?
+                try:
+                    mapped_ids = set(self.mapped(fname)._ids)
+                except Exception:
+                    mapped_ids = set()
+                missing = db_ids - mapped_ids
+                if missing:
+                    _logger.warning(
+                        "web_read KeyError guard: field '%s' on helpdesk.ticket — "
+                        "ORM cache missing ids %s (DB has them). Invalidating cache.",
+                        fname, missing,
+                    )
+                    # Invalidate the cache for this field on all self records so that
+                    # the next mapped() call re-fetches from DB.
+                    self.invalidate_recordset([fname])
+
+        return super().web_read(specification)
 
     def assign_ticket_to_self(self):
         self.ensure_one()

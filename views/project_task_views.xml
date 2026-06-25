@@ -23,7 +23,7 @@
                         string="Validate Diagnosis"
                         type="object"
                         class="btn-primary"
-                        invisible="x_studio_diagnosis_validated or not helpdesk_ticket_id"/>
+                        invisible="x_studio_diagnosis_validated or not helpdesk_ticket_id or x_studio_end_quick_repair"/>
                 <button name="action_tested_ok"
                         string="Tested OK"
                         type="object"

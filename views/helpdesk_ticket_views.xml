@@ -47,9 +47,9 @@
                     <attribute name="readonly">x_studio_rug_approved or x_studio_rug_request_sent or x_studio_stage_name != 'New' or x_studio_valid_return</attribute>
                 </xpath>
 
-                <!-- user_id: readonly once RUG flow started or after New stage -->
+                <!-- user_id: always readonly — set only via the "Assign to Me" button -->
                 <xpath expr="//field[@name='user_id']" position="attributes">
-                    <attribute name="readonly">x_studio_rug_approved or x_studio_rug_request_sent or x_studio_repair_serial_created or x_studio_stage_name != 'New' or x_studio_valid_return</attribute>
+                    <attribute name="readonly">1</attribute>
                 </xpath>
 
                 <!-- ticket_type_id: readonly once approved/created or after New stage, cleared domain -->
